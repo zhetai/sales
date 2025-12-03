@@ -1,0 +1,405 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AlertIndicator from '../components/AlertIndicator.astro';
+---
+
+<Layout title="药品代销数据化运营指标">
+  <div class="container-fluid">
+    <h1 class="h2 mb-4">药品代销数据化运营指标</h1>
+    
+    <!-- 警报指示器 -->
+    <AlertIndicator status="normal" message="系统运行正常" action="查看详情" />
+    
+    <!-- 数据化运营指标模块 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">数据化运营指标管理</h5>
+          </div>
+          <div class="card-body">
+            <p>本系统支持运营指标查询、可视化仪表盘配置生成及实时数据推送三大核心功能。</p>
+            
+            <!-- 运营指标查询模块 -->
+            <div class="mb-4">
+              <h6>1. 多维度运营指标查询</h6>
+              <form id="indicatorQueryForm">
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="timeRange" class="form-label">时间范围</label>
+                    <select class="form-select" id="timeRange">
+                      <option value="今日">今日</option>
+                      <option value="近7天" selected>近7天</option>
+                      <option value="近30天">近30天</option>
+                      <option value="自定义">自定义</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="queryPlatform" class="form-label">平台</label>
+                    <select class="form-select" id="queryPlatform">
+                      <option value="抖音">抖音</option>
+                      <option value="视频号">视频号</option>
+                      <option value="全平台">全平台</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="productType" class="form-label">商品类型</label>
+                    <select class="form-select" id="productType">
+                      <option value="OTC药品">OTC药品</option>
+                      <option value="保健品" selected>保健品</option>
+                      <option value="中药饮片">中药饮片</option>
+                      <option value="全品类">全品类</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="drillDownProduct" class="form-label">下钻商品ID（可选）</label>
+                    <input type="text" class="form-control" id="drillDownProduct" placeholder="如：Swisse护肝片-12345">
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-12">
+                    <label class="form-label">需查询的指标</label>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="metricPlayCount" value="播放量" checked>
+                      <label class="form-check-label" for="metricPlayCount">播放量</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="metricClickRate" value="点击率">
+                      <label class="form-check-label" for="metricClickRate">点击率</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="metricConversionRate" value="转化率" checked>
+                      <label class="form-check-label" for="metricConversionRate">转化率</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="metricROI" value="ROI" checked>
+                      <label class="form-check-label" for="metricROI">ROI</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="metricReturnRate" value="退货率">
+                      <label class="form-check-label" for="metricReturnRate">退货率</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="metricPrice" value="客单价">
+                      <label class="form-check-label" for="metricPrice">客单价</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="checkbox" id="metricRepurchaseRate" value="复购率">
+                      <label class="form-check-label" for="metricRepurchaseRate">复购率</label>
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">查询指标</button>
+              </form>
+              <div id="indicatorQueryResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 可视化仪表盘配置生成模块 -->
+            <div class="mb-4">
+              <h6>2. 可视化仪表盘配置生成</h6>
+              <form id="dashboardConfigForm">
+                <div class="row">
+                  <div class="col-md-4">
+                    <label for="dashboardTimeRange" class="form-label">时间范围</label>
+                    <select class="form-select" id="dashboardTimeRange">
+                      <option value="今日">今日</option>
+                      <option value="近7天" selected>近7天</option>
+                      <option value="近30天">近30天</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="dashboardPlatform" class="form-label">平台</label>
+                    <select class="form-select" id="dashboardPlatform">
+                      <option value="抖音">抖音</option>
+                      <option value="视频号">视频号</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-12">
+                    <label class="form-label">图表配置</label>
+                    <div id="chartConfigContainer">
+                      <div class="chart-config-item mb-2 p-2 border rounded">
+                        <div class="row">
+                          <div class="col-md-3">
+                            <label class="form-label">图表类型</label>
+                            <select class="form-select chart-type">
+                              <option value="line">折线图</option>
+                              <option value="bar">柱状图</option>
+                              <option value="pie">饼图</option>
+                              <option value="table">表格</option>
+                            </select>
+                          </div>
+                          <div class="col-md-3">
+                            <label class="form-label">指标</label>
+                            <input type="text" class="form-control chart-metric" placeholder="如：播放量">
+                          </div>
+                          <div class="col-md-3">
+                            <label class="form-label">维度</label>
+                            <input type="text" class="form-control chart-dimension" placeholder="如：日期">
+                          </div>
+                          <div class="col-md-3">
+                            <label class="form-label">标题</label>
+                            <input type="text" class="form-control chart-title" placeholder="如：播放量趋势">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm mt-2" id="addChartBtn">添加图表</button>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">生成仪表盘配置</button>
+              </form>
+              <div id="dashboardConfigResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 实时指标推送模块 -->
+            <div class="mb-4">
+              <h6>3. 关键指标实时推送</h6>
+              <form id="realTimePushForm">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="webhookUrl" class="form-label">Webhook URL</label>
+                    <input type="text" class="form-control" id="webhookUrl" placeholder="如：企业微信机器人URL">
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-12">
+                    <label class="form-label">指标阈值配置</label>
+                    <div id="thresholdConfigContainer">
+                      <div class="threshold-config-item mb-2 p-2 border rounded">
+                        <div class="row">
+                          <div class="col-md-4">
+                            <label class="form-label">监控指标</label>
+                            <select class="form-select threshold-metric">
+                              <option value="退货率">退货率</option>
+                              <option value="ROI">ROI</option>
+                              <option value="播放量">播放量</option>
+                              <option value="转化率">转化率</option>
+                            </select>
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label">阈值</label>
+                            <input type="number" class="form-control threshold-value" placeholder="如：5">
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label">比较方式</label>
+                            <select class="form-select threshold-comparison">
+                              <option value="above">高于</option>
+                              <option value="below">低于</option>
+                              <option value="change">变化</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm mt-2" id="addThresholdBtn">添加阈值</button>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">设置实时推送</button>
+              </form>
+              <div id="realTimePushResult" class="mt-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 运营指标查询处理
+    document.getElementById('indicatorQueryForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // 获取选中的指标
+      const metricTypes = [];
+      document.querySelectorAll('#indicatorQueryForm input[type="checkbox"]:checked').forEach(checkbox => {
+        metricTypes.push(checkbox.value);
+      });
+      
+      const data = {
+        module_name: 'operation_indicator_query',
+        time_range: document.getElementById('timeRange').value,
+        platform: document.getElementById('queryPlatform').value,
+        product_type: document.getElementById('productType').value,
+        metric_types: metricTypes,
+        drill_down: {
+          product_id: document.getElementById('drillDownProduct').value || undefined
+        }
+      };
+      
+      // 如果没有下钻商品ID，删除drill_down字段
+      if (!data.drill_down.product_id) {
+        delete data.drill_down;
+      }
+      
+      try {
+        const response = await fetch('/api/data-operation-dashboard', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('indicatorQueryResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('indicatorQueryResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 可视化仪表盘配置生成处理
+    document.getElementById('dashboardConfigForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // 获取图表配置
+      const chartList = [];
+      document.querySelectorAll('.chart-config-item').forEach(item => {
+        const chartType = item.querySelector('.chart-type').value;
+        const metric = item.querySelector('.chart-metric').value;
+        const dimension = item.querySelector('.chart-dimension').value;
+        const title = item.querySelector('.chart-title').value;
+        
+        if (metric && title) {
+          chartList.push({
+            chart_type: chartType,
+            metric: metric,
+            dimension: dimension,
+            title: title
+          });
+        }
+      });
+      
+      const data = {
+        module_name: 'dashboard_config_generator',
+        chart_list: chartList,
+        time_range: document.getElementById('dashboardTimeRange').value,
+        platform: document.getElementById('dashboardPlatform').value
+      };
+      
+      try {
+        const response = await fetch('/api/data-operation-dashboard', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('dashboardConfigResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('dashboardConfigResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 实时指标推送处理
+    document.getElementById('realTimePushForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      // 获取阈值配置
+      const metricThresholds = [];
+      document.querySelectorAll('.threshold-config-item').forEach(item => {
+        const metric = item.querySelector('.threshold-metric').value;
+        const threshold = parseFloat(item.querySelector('.threshold-value').value);
+        const comparison = item.querySelector('.threshold-comparison').value;
+        
+        if (!isNaN(threshold)) {
+          metricThresholds.push({
+            metric: metric,
+            threshold: threshold,
+            comparison: comparison
+          });
+        }
+      });
+      
+      const data = {
+        module_name: 'real_time_indicator_push',
+        webhook_url: document.getElementById('webhookUrl').value,
+        metric_thresholds: metricThresholds
+      };
+      
+      try {
+        const response = await fetch('/api/data-operation-dashboard', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('realTimePushResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('realTimePushResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 添加图表配置项
+    document.getElementById('addChartBtn').addEventListener('click', function() {
+      const container = document.getElementById('chartConfigContainer');
+      const newItem = document.createElement('div');
+      newItem.className = 'chart-config-item mb-2 p-2 border rounded';
+      newItem.innerHTML = `
+        <div class="row">
+          <div class="col-md-3">
+            <label class="form-label">图表类型</label>
+            <select class="form-select chart-type">
+              <option value="line">折线图</option>
+              <option value="bar">柱状图</option>
+              <option value="pie">饼图</option>
+              <option value="table">表格</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">指标</label>
+            <input type="text" class="form-control chart-metric" placeholder="如：播放量">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">维度</label>
+            <input type="text" class="form-control chart-dimension" placeholder="如：日期">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">标题</label>
+            <input type="text" class="form-control chart-title" placeholder="如：播放量趋势">
+          </div>
+        </div>
+      `;
+      container.appendChild(newItem);
+    });
+    
+    // 添加阈值配置项
+    document.getElementById('addThresholdBtn').addEventListener('click', function() {
+      const container = document.getElementById('thresholdConfigContainer');
+      const newItem = document.createElement('div');
+      newItem.className = 'threshold-config-item mb-2 p-2 border rounded';
+      newItem.innerHTML = `
+        <div class="row">
+          <div class="col-md-4">
+            <label class="form-label">监控指标</label>
+            <select class="form-select threshold-metric">
+              <option value="退货率">退货率</option>
+              <option value="ROI">ROI</option>
+              <option value="播放量">播放量</option>
+              <option value="转化率">转化率</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">阈值</label>
+            <input type="number" class="form-control threshold-value" placeholder="如：5">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">比较方式</label>
+            <select class="form-select threshold-comparison">
+              <option value="above">高于</option>
+              <option value="below">低于</option>
+              <option value="change">变化</option>
+            </select>
+          </div>
+        </div>
+      `;
+      container.appendChild(newItem);
+    });
+  </script>
+</Layout>

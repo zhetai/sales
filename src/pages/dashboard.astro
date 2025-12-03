@@ -1,0 +1,1980 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { setSafeInnerHTML, setSafeInnerHTMLFragment } from '../lib/utils.js';
+---
+
+<Layout>
+  <div id="dashboard">
+    <header>
+      <h1>药品代销运营仪表盘</h1>
+      <div class="user-info">
+        <span>欢迎，管理员</span>
+        <button id="logout-btn">退出</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- 筛选器区域 -->
+      <section class="filters">
+        <div class="filter-group">
+          <label for="time-range">时间范围:</label>
+          <select id="time-range">
+            <option value="近7天">近7天</option>
+            <option value="近30天">近30天</option>
+            <option value="自定义">自定义</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="platform">平台:</label>
+          <select id="platform">
+            <option value="抖音">抖音</option>
+            <option value="视频号">视频号</option>
+            <option value="其他">其他</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="product-type">商品类型:</label>
+          <select id="product-type">
+            <option value="保健品">保健品</option>
+            <option value="医疗器械">医疗器械</option>
+            <option value="处方药">处方药</option>
+          </select>
+        </div>
+        <button id="refresh-btn">刷新数据</button>
+      </section>
+
+      <!-- 指标卡片区域 -->
+      <section class="metrics">
+        <h2>关键指标</h2>
+        <div class="metrics-grid" id="metrics-container">
+          <!-- 指标卡片将通过API动态加载 -->
+          <div class="loading">加载中...</div>
+        </div>
+      </section>
+
+      <!-- 图表区域 -->
+      <section class="charts">
+        <h2>数据可视化</h2>
+        <div class="charts-grid" id="charts-container">
+          <!-- 图表将通过API动态加载 -->
+          <div class="loading">加载中...</div>
+        </div>
+      </section>
+
+      <!-- 智能选品 -->
+      <section class="selection-strategy">
+        <h2>智能选品</h2>
+        <div class="selection-grid" id="selection-container">
+          <!-- 选品策略将通过API动态加载 -->
+          <div class="loading">加载中...</div>
+        </div>
+      </section>
+
+      <!-- 权限控制区域 -->
+      <section class="permissions">
+        <h2>权限管理</h2>
+        <div class="permissions-grid" id="permissions-container">
+          <!-- 权限面板将通过API动态加载 -->
+          <div class="loading">加载中...</div>
+        </div>
+      </section>
+
+      <!-- 预警系统 -->
+      <section class="alerts">
+        <h2>系统预警</h2>
+        <div class="alerts-grid" id="alerts-container">
+          <!-- 预警信息将通过API动态加载 -->
+          <div class="loading">加载中...</div>
+        </div>
+      </section>
+    </main>
+  </div>
+</Layout>
+
+<script>
+  // DOM加载完成后初始化
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 初始化页面数据
+    await initializeDashboard();
+    
+    // 绑定事件监听器
+    bindEventListeners();
+  });
+
+  // 初始化仪表盘
+  const initializeDashboard = async () => {
+    try {
+      // 并行加载所有仪表盘数据
+      const loadDataPromises = [
+        loadMetrics().catch(error => {
+          console.error('加载指标数据失败:', error);
+          showError('指标数据加载失败');
+        }),
+        loadCharts().catch(error => {
+          console.error('加载图表数据失败:', error);
+          showError('图表数据加载失败');
+        }),
+        loadPermissions().catch(error => {
+          console.error('加载权限数据失败:', error);
+          showError('权限数据加载失败');
+        }),
+        loadSelectionStrategy().catch(error => {
+          console.error('加载选品策略失败:', error);
+          showError('选品策略加载失败');
+        }),
+        loadAlerts().catch(error => {
+          console.error('加载预警信息失败:', error);
+          showError('预警信息加载失败');
+        })
+      ];
+      
+      // 等待所有数据加载完成
+      await Promise.all(loadDataPromises);
+    } catch (error) {
+      console.error('初始化仪表盘失败:', error);
+      showError('数据加载失败，请稍后重试');
+    }
+  };
+
+  // 加载流量运营指标数据
+  const loadMetrics = async () => {
+    const container = document.getElementById('metrics-container');
+    const platform = document.getElementById('platform').value;
+    const productType = document.getElementById('product-type').value;
+    
+    try {
+      // 清空容器
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      
+      // 创建流量运营模块的指标卡片
+      const trafficModules = [
+        {
+          id: 'chanmama-ad',
+          title: '千川投放',
+          description: 'ROI基准线管控',
+          icon: '📈',
+          color: '#007BFF'
+        },
+        {
+          id: 'jietiao-clipping',
+          title: '智能剪辑',
+          description: 'WASM多版本处理',
+          icon: '✂️',
+          color: '#28A745'
+        },
+        {
+          id: 'influencer-rec',
+          title: '达人推荐',
+          description: '带货条件匹配',
+          icon: '👥',
+          color: '#FFC107'
+        },
+        {
+          id: 'publish-schedule',
+          title: '发布调度',
+          description: '微信通知',
+          icon: '⏰',
+          color: '#DC3545'
+        }
+      ];
+      
+      // 渲染流量运营模块卡片
+      renderTrafficModules(trafficModules);
+      
+      // 为每个模块加载详细数据
+      loadTrafficModuleData();
+    } catch (error) {
+      console.error('加载流量运营指标数据失败:', error);
+      // Clear existing content
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Add error element
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = '流量运营指标数据加载失败';
+      container.appendChild(errorDiv);
+    }
+  };
+
+  // 渲染流量运营模块卡片
+  const renderTrafficModules = (modules) => {
+    const container = document.getElementById('metrics-container');
+    
+    if (!modules || modules.length === 0) {
+      // Clear existing content
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Add empty element
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'empty';
+      emptyDiv.textContent = '暂无流量运营模块数据';
+      container.appendChild(emptyDiv);
+      return;
+    }
+    
+    // Clear existing content
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    // Create and append module elements
+    modules.map(module => {
+      const moduleDiv = document.createElement('div');
+      moduleDiv.className = 'metric-card traffic-module-card';
+      moduleDiv.dataset.module = module.id;
+      setSafeInnerHTMLFragment(moduleDiv, `
+        <div class="metric-header">
+          <h3 class="metric-name">${module.icon} ${module.title}</h3>
+        </div>
+        <div class="metric-value">
+          <span class="value" style="color: ${module.color}">${module.description}</span>
+        </div>
+        <div class="metric-trend">
+          <div class="module-status loading">加载中...</div>
+          <div class="module-details" style="display: none;"></div>
+        </div>
+      `);
+      container.appendChild(moduleDiv);
+    });
+  };
+
+  // 带超时的fetch函数
+  const fetchWithTimeout = async (url, options, timeout = 10000) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
+  };
+
+  // 加载流量运营模块详细数据
+  const loadTrafficModuleData = async () => {
+    const platform = document.getElementById('platform').value;
+    
+    // 并行加载所有模块数据
+    const promises = [
+      // 加载千川投放数据
+      fetchWithTimeout('/api/chanmama_ad_placement', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_id: "示例产品-12345",
+          budget: 10000,
+          target_audience: "熬夜党/酒局党",
+          platform: platform
+        })
+      }, 10000).then(response => {
+        if (response.ok) {
+          return response.json().then(adData => {
+            const adCard = document.querySelector('.traffic-module-card[data-module="chanmama-ad"]');
+            if (adCard) {
+              const statusDiv = adCard.querySelector('.module-status');
+              const detailsDiv = adCard.querySelector('.module-details');
+              
+              statusDiv.style.display = 'none';
+              detailsDiv.style.display = 'block';
+              setSafeInnerHTMLFragment(detailsDiv, `
+                <div class="detail-item">
+                  <span class="detail-label">预测ROI:</span>
+                  <span class="detail-value">${adData.roi_prediction}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">预算分配:</span>
+                  <span class="detail-value">测试${adData.budget_allocation.test}/正式${adData.budget_allocation.formal}</span>
+                </div>
+              `);
+            }
+          });
+        }
+      }).catch(error => {
+        console.error('加载千川投放数据失败:', error);
+        const adCard = document.querySelector('.traffic-module-card[data-module="chanmama-ad"]');
+        if (adCard) {
+          const statusDiv = adCard.querySelector('.module-status');
+          statusDiv.textContent = '加载失败';
+          statusDiv.className = 'module-status error';
+        }
+      }),
+      
+      // 加载智能剪辑数据
+      fetchWithTimeout('/api/jietiao_smart_clipping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          video_url: "https://oss.aliyuncs.com/raw_video.mp4",
+          product_type: document.getElementById('product-type').value,
+          target_duration: 30
+        })
+      }, 10000).then(response => {
+        if (response.ok) {
+          return response.json().then(clipData => {
+            const clipCard = document.querySelector('.traffic-module-card[data-module="jietiao-clipping"]');
+            if (clipCard) {
+              const statusDiv = clipCard.querySelector('.module-status');
+              const detailsDiv = clipCard.querySelector('.module-details');
+              
+              statusDiv.style.display = 'none';
+              detailsDiv.style.display = 'block';
+              setSafeInnerHTMLFragment(detailsDiv, `
+                <div class="detail-item">
+                  <span class="detail-label">处理状态:</span>
+                  <span class="detail-value">${clipData.wasm_status ? '成功' : '失败'}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">高完播率:</span>
+                  <span class="detail-value">${clipData.processed_videos.length}个版本</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">WASM界面:</span>
+                  <span class="detail-value">剪映「智能成片」生成10个不同版本视频，筛选完播率＞35%的素材</span>
+                </div>
+              `);
+            }
+          });
+        }
+      }).catch(error => {
+        console.error('加载智能剪辑数据失败:', error);
+        const clipCard = document.querySelector('.traffic-module-card[data-module="jietiao-clipping"]');
+        if (clipCard) {
+          const statusDiv = clipCard.querySelector('.module-status');
+          statusDiv.textContent = '加载失败';
+          statusDiv.className = 'module-status error';
+        }
+      }),
+      
+      // 加载达人推荐数据
+      fetchWithTimeout('/api/influencer_recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          product_type: document.getElementById('product-type').value,
+          target_platform: platform,
+          budget_range: "中（5000-2万）"
+        })
+      }, 10000).then(response => {
+        if (response.ok) {
+          return response.json().then(influencerData => {
+            const influencerCard = document.querySelector('.traffic-module-card[data-module="influencer-rec"]');
+            if (influencerCard) {
+              const statusDiv = influencerCard.querySelector('.module-status');
+              const detailsDiv = influencerCard.querySelector('.module-details');
+              
+              statusDiv.style.display = 'none';
+              detailsDiv.style.display = 'block';
+              
+              // 构建达人信息HTML
+              let influencersHTML = '';
+              if (influencerData.influencers && influencerData.influencers.length > 0) {
+                influencersHTML = influencerData.influencers.map(influencer => `
+                  <div class="detail-item">
+                    <span class="detail-label">达人:</span>
+                    <span class="detail-value">
+                      <a href="${influencer.profile_url || '#'}" target="_blank" style="color: #007BFF; text-decoration: underline;">
+                        ${influencer.name}
+                      </a>
+                    </span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">粉丝数:</span>
+                    <span class="detail-value">${influencer.follower_count}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">转化率:</span>
+                    <span class="detail-value">${influencer.conversion_rate}</span>
+                  </div>
+                `).join('');
+              }
+              
+              setSafeInnerHTMLFragment(detailsDiv, `
+                <div class="detail-item">
+                  <span class="detail-label">推荐达人:</span>
+                  <span class="detail-value">${influencerData.influencers.length}位</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">最高转化:</span>
+                  <span class="detail-value">${influencerData.influencers[0]?.conversion_rate || 'N/A'}</span>
+                </div>
+                ${influencersHTML}
+              `);
+            }
+          });
+        }
+      }).catch(error => {
+        console.error('加载达人推荐数据失败:', error);
+        const influencerCard = document.querySelector('.traffic-module-card[data-module="influencer-rec"]');
+        if (influencerCard) {
+          const statusDiv = influencerCard.querySelector('.module-status');
+          statusDiv.textContent = '加载失败';
+          statusDiv.className = 'module-status error';
+        }
+      }),
+      
+      // 加载发布调度数据
+      fetchWithTimeout('/api/publish_schedule_webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          platform: platform,
+          publish_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 明天同一时间
+          main_account_id: "main_account_123",
+          sub_account_ids: ["sub_account_456", "sub_account_789"],
+          webhook_url: "https://sc.ftqq.com/your_server_chan_key.send"
+        })
+      }, 10000).then(response => {
+        if (response.ok) {
+          return response.json().then(publishData => {
+            const publishCard = document.querySelector('.traffic-module-card[data-module="publish-schedule"]');
+            if (publishCard) {
+              const statusDiv = publishCard.querySelector('.module-status');
+              const detailsDiv = publishCard.querySelector('.module-details');
+              
+              statusDiv.style.display = 'none';
+              detailsDiv.style.display = 'block';
+              setSafeInnerHTMLFragment(detailsDiv, `
+                <div class="detail-item">
+                  <span class="detail-label">发布状态:</span>
+                  <span class="detail-value">${publishData.publish_status}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">通知状态:</span>
+                  <span class="detail-value">${publishData.webhook_status}</span>
+                </div>
+              `);
+            }
+          });
+        }
+      }).catch(error => {
+        console.error('加载发布调度数据失败:', error);
+        const publishCard = document.querySelector('.traffic-module-card[data-module="publish-schedule"]');
+        if (publishCard) {
+          const statusDiv = publishCard.querySelector('.module-status');
+          statusDiv.textContent = '加载失败';
+          statusDiv.className = 'module-status error';
+        }
+      })
+    ];
+    
+    // 等待所有请求完成
+    await Promise.allSettled(promises);
+  };
+
+  // 加载图表数据
+  const loadCharts = async () => {
+    const container = document.getElementById('charts-container');
+    
+    try {
+      const response = await fetch('/api/dashboard_config_generator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chart_list: [
+            { metric: '播放量', chart_type: 'line', title: '播放量趋势' },
+            { metric: '转化率', chart_type: 'bar', title: '转化率对比' },
+            { metric: '流量占比', chart_type: 'pie', title: '平台流量分布' }
+          ],
+          time_range: document.getElementById('time-range').value,
+          platform: document.getElementById('platform').value
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // 渲染图表
+      renderCharts(data.config_json.charts);
+    } catch (error) {
+      console.error('加载图表数据失败:', error);
+      // Clear existing content
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Add error element
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = '图表数据加载失败';
+      container.appendChild(errorDiv);
+    }
+  };
+
+  // 渲染图表
+  const renderCharts = (charts) => {
+    const container = document.getElementById('charts-container');
+    
+    if (!charts || charts.length === 0) {
+      // Clear existing content
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Add empty element
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'empty';
+      emptyDiv.textContent = '暂无图表数据';
+      container.appendChild(emptyDiv);
+      return;
+    }
+    
+    // Clear existing content
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    // Create and append chart elements
+    charts.map(chart => {
+      // 为每个图表生成唯一的ID
+      const chartId = `chart-${chart.id}`;
+      
+      const chartDiv = document.createElement('div');
+      chartDiv.className = 'chart-card';
+      chartDiv.dataset.chartId = chart.id;
+      setSafeInnerHTMLFragment(chartDiv, `
+        <div class="chart-header">
+          <h3 class="chart-title">${chart.options.title}</h3>
+        </div>
+        <div class="chart-container">
+          <canvas id="${chartId}"></canvas>
+        </div>
+      `);
+      container.appendChild(chartDiv);
+    });
+    
+    // 渲染每个图表
+    charts.forEach(chart => {
+      const chartId = `chart-${chart.id}`;
+      const canvas = document.getElementById(chartId);
+      
+      if (canvas) {
+        // 动态导入Chart.js
+        import('https://cdn.jsdelivr.net/npm/chart.js').then(({ Chart, registerables }) => {
+          Chart.register(...registerables);
+          
+          // 销毁已存在的图表实例（如果有的话）
+          if (canvas.chart) {
+            canvas.chart.destroy();
+          }
+          
+          // 根据图表类型创建不同的图表
+          if (chart.type === 'line') {
+            canvas.chart = new Chart(canvas, {
+              type: 'line',
+              data: {
+                labels: chart.data.xAxis,
+                datasets: [{
+                  label: chart.options.yAxisName || chart.options.title,
+                  data: chart.data.series[0].data,
+                  borderColor: '#007BFF',
+                  backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                  tension: 0.4,
+                  fill: true
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: chart.options.title
+                  },
+                  legend: {
+                    display: false
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true
+                  }
+                }
+              }
+            });
+          } else if (chart.type === 'bar') {
+            canvas.chart = new Chart(canvas, {
+              type: 'bar',
+              data: {
+                labels: chart.data.xAxis,
+                datasets: [{
+                  label: chart.options.yAxisName || chart.options.title,
+                  data: chart.data.series[0].data,
+                  backgroundColor: '#28A745',
+                  borderColor: '#218838',
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: chart.options.title
+                  },
+                  legend: {
+                    display: false
+                  }
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true
+                  }
+                }
+              }
+            });
+          } else if (chart.type === 'pie') {
+            canvas.chart = new Chart(canvas, {
+              type: 'pie',
+              data: {
+                labels: chart.data.categories,
+                datasets: [{
+                  data: chart.data.series[0].data,
+                  backgroundColor: [
+                    '#007BFF',
+                    '#28A745',
+                    '#FFC107',
+                    '#DC3545',
+                    '#6F42C1'
+                  ],
+                  borderColor: '#fff',
+                  borderWidth: 2
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  title: {
+                    display: true,
+                    text: chart.options.title
+                  },
+                  legend: {
+                    position: 'bottom'
+                  }
+                }
+              }
+            });
+          }
+        }).catch(error => {
+          console.error('加载Chart.js失败:', error);
+          // 如果Chart.js加载失败，显示占位符
+          const chartContainer = canvas.parentElement;
+          setSafeInnerHTMLFragment(chartContainer, `
+            <div class="chart-placeholder">
+              <p>图表加载失败</p>
+              <p>请检查网络连接后重试</p>
+            </div>
+          `);
+        });
+      }
+    });
+  };
+
+  // 加载权限数据
+  const loadPermissions = async () => {
+    const container = document.getElementById('permissions-container');
+    
+    // 模拟权限数据
+    const permissions = {
+      roles: ["品牌方", "代销方", "客服"],
+      permissions: {
+        "品牌方": ["查看销售数据", "查看ROI", "编辑合作条款", "导出报告"],
+        "代销方": ["查看销售数据", "查看库存", "提交退货申请", "查看预警"],
+        "客服": ["查看退货申请", "更新售后状态", "查看预警"]
+      }
+    };
+    
+    // 渲染权限面板
+    renderPermissions(permissions);
+  };
+
+  // 加载选品策略
+  const loadSelectionStrategy = async () => {
+    const container = document.getElementById('selection-container');
+    
+    try {
+      // 获取选品策略数据
+      const response = await fetch('/api/drug-selection-strategy');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // 渲染选品策略
+      renderSelectionStrategy(data);
+    } catch (error) {
+      console.error('加载选品策略失败:', error);
+      // Clear existing content
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Add error element
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = '选品策略加载失败';
+      container.appendChild(errorDiv);
+    }
+  };
+
+  // 渲染选品策略
+  const renderSelectionStrategy = (strategy) => {
+    const container = document.getElementById('selection-container');
+    
+    if (!strategy) {
+      // Clear existing content
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Add empty element
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'empty';
+      emptyDiv.textContent = '暂无选品策略数据';
+      container.appendChild(emptyDiv);
+      return;
+    }
+    
+    // 创建选品策略卡片
+    const strategyCards = [
+      {
+        title: '舆情监控',
+        description: strategy.config.public_opinion_monitoring.purpose,
+        details: `
+          <div class="detail-item">
+            <span class="detail-label">监控工具:</span>
+            <span class="detail-value">${strategy.config.public_opinion_monitoring.tool}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">过滤规则:</span>
+            <span class="detail-value">${strategy.config.public_opinion_monitoring.filter_rule}</span>
+          </div>
+        `,
+        icon: '🔍'
+      },
+      {
+        title: '热点借势',
+        description: strategy.config.hot_product_selection.hot_trend_borrowing.selection_logic,
+        details: `
+          <div class="detail-item">
+            <span class="detail-label">追踪平台:</span>
+            <span class="detail-value">${strategy.config.hot_product_selection.hot_trend_borrowing.platform}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">追踪榜单:</span>
+            <span class="detail-value">${strategy.config.hot_product_selection.hot_trend_borrowing.tracked_list}</span>
+          </div>
+        `,
+        icon: '🔥'
+      },
+      {
+        title: '数据验证',
+        description: '验证转化率、退货率、复购率等关键指标',
+        details: `
+          <div class="detail-item">
+            <span class="detail-label">验证工具:</span>
+            <span class="detail-value">${strategy.config.hot_product_selection.data_verification.tool}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">转化率阈值:</span>
+            <span class="detail-value">${strategy.config.hot_product_selection.data_verification.metrics[0].threshold}</span>
+          </div>
+        `,
+        icon: '📊'
+      },
+      {
+        title: '利润测算',
+        description: strategy.config.hot_product_selection.profit_calculation.profit_target,
+        details: `
+          <div class="detail-item">
+            <span class="detail-label">佣金范围:</span>
+            <span class="detail-value">${strategy.config.hot_product_selection.profit_calculation.commission_range}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">ROI基准线:</span>
+            <span class="detail-value">${strategy.config.hot_product_selection.profit_calculation.cost_coverage.platform_ad_cost}</span>
+          </div>
+        `,
+        icon: '💰'
+      }
+    ];
+    
+    // Clear existing content
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    // Create and append strategy elements
+    const strategyGrid = document.createElement('div');
+    strategyGrid.className = 'strategy-grid';
+    strategyCards.map(card => {
+      const cardDiv = document.createElement('div');
+      cardDiv.className = 'strategy-card';
+      setSafeInnerHTMLFragment(cardDiv, `
+        <div class="strategy-header">
+          <h3 class="strategy-title">${card.icon} ${card.title}</h3>
+        </div>
+        <div class="strategy-description">
+          <p>${card.description}</p>
+        </div>
+        <div class="strategy-details">
+          ${card.details}
+        </div>
+      `);
+      strategyGrid.appendChild(cardDiv);
+    });
+    container.appendChild(strategyGrid);
+    
+    // 添加选品产品部分
+    const productsDiv = document.createElement('div');
+    productsDiv.className = 'selected-products';
+    setSafeInnerHTMLFragment(productsDiv, `
+      <h3>推荐选品</h3>
+      <div class="products-grid">
+        ${strategy.example_output.selected_products.map(product => `
+          <div class="product-card">
+            <h4>${product.product_name}</h4>
+            <div class="product-detail">
+              <span class="detail-label">舆情评分:</span>
+              <span class="detail-value">${product.舆情评分}</span>
+            </div>
+            <div class="product-detail">
+              <span class="detail-label">数据表现:</span>
+              <span class="detail-value">${product.数据表现}</span>
+            </div>
+            <div class="product-detail">
+              <span class="detail-label">利润空间:</span>
+              <span class="detail-value">${product.利润空间}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `);
+    container.appendChild(productsDiv);
+  };
+
+  // 渲染权限面板
+  const renderPermissions = (permissions) => {
+    const container = document.getElementById('permissions-container');
+    
+    if (!permissions || !permissions.roles) {
+      // Clear existing content
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Add empty element
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'empty';
+      emptyDiv.textContent = '暂无权限数据';
+      container.appendChild(emptyDiv);
+      return;
+    }
+    
+    // Clear existing content
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    // Create and append permissions elements
+    const permissionsPanel = document.createElement('div');
+    permissionsPanel.className = 'permissions-panel';
+    
+    const rolesList = document.createElement('div');
+    rolesList.className = 'roles-list';
+    const rolesHeader = document.createElement('h3');
+    rolesHeader.textContent = '角色列表';
+    rolesList.appendChild(rolesHeader);
+    const rolesUl = document.createElement('ul');
+    permissions.roles.map(role => {
+      const roleLi = document.createElement('li');
+      roleLi.textContent = role;
+      rolesUl.appendChild(roleLi);
+    });
+    rolesList.appendChild(rolesUl);
+    permissionsPanel.appendChild(rolesList);
+    
+    const permissionsDetails = document.createElement('div');
+    permissionsDetails.className = 'permissions-details';
+    const permissionsHeader = document.createElement('h3');
+    permissionsHeader.textContent = '权限详情';
+    permissionsDetails.appendChild(permissionsHeader);
+    permissions.roles.map(role => {
+      const rolePermissions = document.createElement('div');
+      rolePermissions.className = 'role-permissions';
+      const roleHeader = document.createElement('h4');
+      roleHeader.textContent = role;
+      rolePermissions.appendChild(roleHeader);
+      const permissionsUl = document.createElement('ul');
+      permissions.permissions[role].map(permission => {
+        const permissionLi = document.createElement('li');
+        permissionLi.textContent = permission;
+        permissionsUl.appendChild(permissionLi);
+      });
+      rolePermissions.appendChild(permissionsUl);
+      permissionsDetails.appendChild(rolePermissions);
+    });
+    permissionsPanel.appendChild(permissionsDetails);
+    
+    container.appendChild(permissionsPanel);
+  };
+
+  // 加载预警信息
+  const loadAlerts = async () => {
+    const container = document.getElementById('alerts-container');
+    
+    // 模拟预警数据
+    const alerts = [
+      { status: 'normal', message: '系统运行正常', action: '查看详情' },
+      { status: 'warning', message: '转化率略有下降', action: '查看详情' },
+      { status: 'error', message: '退货率异常增高', action: '立即处理' }
+    ];
+    
+    // 渲染预警信息
+    renderAlerts(alerts);
+  };
+
+  // 渲染预警信息
+  const renderAlerts = (alerts) => {
+    const container = document.getElementById('alerts-container');
+    
+    if (!alerts || alerts.length === 0) {
+      // Clear existing content
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      // Add empty element
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'empty';
+      emptyDiv.textContent = '暂无预警信息';
+      container.appendChild(emptyDiv);
+      return;
+    }
+    
+    // Clear existing content
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    // Create and append alert elements
+    alerts.map(alert => {
+      // 根据状态获取颜色
+      const getStatusColor = (status) => {
+        switch (status) {
+          case 'error': return '#DC3545';
+          case 'warning': return '#FFC107';
+          default: return '#28A745';
+        }
+      };
+      
+      // 根据状态获取文本
+      const getStatusText = (status) => {
+        switch (status) {
+          case 'error': return '异常';
+          case 'warning': return '预警';
+          default: return '正常';
+        }
+      };
+      
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert-indicator';
+      alertDiv.dataset.status = alert.status;
+      setSafeInnerHTMLFragment(alertDiv, `
+        <div class="status-light" style="background-color: ${getStatusColor(alert.status)}"></div>
+        <div class="alert-content">
+          <span class="status-text">${getStatusText(alert.status)}</span>
+          <span class="alert-message">${alert.message}</span>
+        </div>
+        <button class="alert-action" data-status="${alert.status}">${alert.action}</button>
+      `);
+      container.appendChild(alertDiv);
+    });
+    
+    // 为预警按钮添加事件监听器
+    document.querySelectorAll('.alert-action').forEach(button => {
+      button.addEventListener('click', (event) => {
+        const status = event.target.dataset.status;
+        showAlertDetails(status);
+      });
+    });
+  };
+
+  // 显示下钻详情
+  const showDrillDownDetails = (metricName) => {
+    // 根据指标名称显示不同的详情信息
+    let details = '';
+    switch (metricName) {
+      case '播放量':
+        details = `播放量详情：
+- 今日播放量：120,000次
+- 昨日播放量：105,000次
+- 环比增长：↑15%
+- 热门商品：商品A(30,000次)、商品B(25,000次)、商品C(20,000次)`;
+        break;
+      case '转化率':
+        details = `转化率详情：
+- 当前转化率：3.8%
+- 昨日转化率：3.8%
+- 环比持平：→0%
+- 高转化商品：商品X(5.2%)、商品Y(4.8%)、商品Z(4.1%)`;
+        break;
+      case '退货率':
+        details = `退货率详情：
+- 当前退货率：4.2%
+- 昨日退货率：4.5%
+- 环比下降：↓5%
+- 高退货商品：商品M(8.1%)、商品N(7.3%)、商品O(6.5%)`;
+        break;
+      case '复购率':
+        details = `复购率详情：
+- 当前复购率：12.3%
+- 上月复购率：12.0%
+- 环比增长：↑3%
+- 高复购用户：用户组A(25.1%)、用户组B(18.7%)、用户组C(15.2%)`;
+        break;
+      default:
+        details = `${metricName}详情：
+- 数据正常
+- 无异常情况
+- 建议继续保持`;
+    }
+    
+    alert(details);
+  };
+
+  // 显示预警详情
+  const showAlertDetails = (status) => {
+    // 根据状态显示不同的详情信息
+    let details = '';
+    switch (status) {
+      case 'error':
+        details = `系统异常详情：
+- 异常时间：${new Date().toLocaleString()}
+- 异常类型：系统错误
+- 影响范围：核心服务
+- 建议措施：立即联系技术支持`;
+        break;
+      case 'warning':
+        details = `系统预警详情：
+- 预警时间：${new Date().toLocaleString()}
+- 预警类型：性能下降
+- 影响范围：部分功能
+- 建议措施：监控系统性能`;
+        break;
+      default:
+        details = `系统状态详情：
+- 检查时间：${new Date().toLocaleString()}
+- 系统状态：运行正常
+- 性能指标：所有指标正常
+- 建议措施：继续保持监控`;
+    }
+    
+    // 创建模态框显示详情
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    setSafeInnerHTMLFragment(modal, `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>详情信息</h3>
+          <span class="close">×</span>
+        </div>
+        <div class="modal-body">
+          <pre>${details}</pre>
+        </div>
+      </div>
+    `);
+    
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+      .modal {
+        display: block;
+        position: fixed;
+        z-index: 1001;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.4);
+      }
+      
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 0;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .modal-header {
+        padding: 15px 20px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-radius: 8px 8px 0 0;
+      }
+      
+      .modal-header h3 {
+        margin: 0;
+        color: #333;
+      }
+      
+      .close {
+        color: #aaa;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      
+      .close:hover {
+        color: #000;
+      }
+      
+      .modal-body {
+        padding: 20px;
+      }
+      
+      .modal-body pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin: 0;
+        font-family: inherit;
+        line-height: 1.5;
+      }
+    `;
+    
+    document.head.appendChild(style);
+    document.body.appendChild(modal);
+    
+    // 添加关闭事件
+    modal.querySelector('.close').addEventListener('click', () => {
+      document.body.removeChild(modal);
+      document.head.removeChild(style);
+    });
+    
+    // 点击模态框外部关闭
+    window.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        document.body.removeChild(modal);
+        document.head.removeChild(style);
+      }
+    });
+  };
+
+  // 防抖函数
+  const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
+
+  // 绑定事件监听器
+  const bindEventListeners = () => {
+    // 为筛选器添加事件监听器（使用防抖）
+    const debouncedLoad = debounce(async () => {
+      // 显示加载状态
+      showLoadingState();
+      await initializeDashboard();
+    }, 300);
+    
+    const filters = document.querySelectorAll('.filter-group select');
+    filters.forEach(filter => {
+      filter.addEventListener('change', debouncedLoad);
+    });
+    
+    // 刷新按钮
+    document.getElementById('refresh-btn').addEventListener('click', async () => {
+      showLoadingState();
+      await initializeDashboard();
+    });
+    
+    // 退出按钮
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      if (confirm('确定要退出登录吗？')) {
+        // 这里应该调用退出登录的API
+        alert('已退出登录');
+        // 重定向到登录页面
+        // window.location.href = '/login';
+      }
+    });
+  };
+
+  // 显示加载状态
+  const showLoadingState = () => {
+    const containers = [
+      'metrics-container',
+      'charts-container',
+      'selection-container',
+      'permissions-container',
+      'alerts-container'
+    ];
+    
+    containers.forEach(containerId => {
+      const container = document.getElementById(containerId);
+      if (container) {
+        // Clear existing content
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+        // Add loading element
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading';
+        loadingDiv.textContent = '加载中...';
+        container.appendChild(loadingDiv);
+      }
+    });
+  };
+
+  // 显示错误信息
+    const showError = (message) => {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message';
+      errorDiv.textContent = message;
+      errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #f8d7da;
+        color: #721c24;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #f5c6cb;
+        z-index: 1000;
+      `;
+      
+      document.body.appendChild(errorDiv);
+      
+      // 3秒后自动移除
+      setTimeout(() => {
+        if (errorDiv.parentElement) {
+          errorDiv.remove();
+        }
+      }, 3000);
+    };
+</script>
+
+<style>
+  #dashboard {
+    font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  #logout-btn {
+    padding: 8px 16px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  #logout-btn:hover {
+    background: #c82333;
+  }
+
+  /* 筛选器样式 */
+  .filters {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    flex-wrap: wrap;
+    align-items: end;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 150px;
+  }
+
+  .filter-group label {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    min-width: 120px;
+    flex: 1;
+  }
+
+  #refresh-btn {
+    padding: 8px 16px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-end;
+    height: fit-content;
+  }
+
+  #refresh-btn:hover {
+    background: #0069d9;
+  }
+
+  /* 指标卡片样式 */
+  .metrics h2, .charts h2, .permissions h2, .alerts h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .metric-card {
+    padding: 20px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .metric-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .drill-down-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #007BFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .drill-down-btn:hover {
+    background: #f0f8ff;
+  }
+
+  .metric-value {
+    margin-bottom: 15px;
+    flex: 1;
+  }
+
+  .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #007BFF;
+  }
+
+  .unit {
+    margin-left: 5px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .metric-trend {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* 流量运营模块专用样式 */
+  .traffic-module-card {
+    text-align: center;
+  }
+
+  .traffic-module-card .metric-name {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+
+  .traffic-module-card .value {
+    font-size: 16px;
+    font-weight: normal;
+    color: #666;
+  }
+
+  .module-status {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .module-status.loading {
+    color: #007BFF;
+  }
+
+  .module-details {
+    text-align: left;
+  }
+
+  .detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+
+  .detail-label {
+    color: #666;
+  }
+
+  .detail-value {
+    color: #333;
+    font-weight: 500;
+  }
+
+  /* 图表样式 */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .chart-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chart-header {
+    margin-bottom: 15px;
+  }
+
+  .chart-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .chart-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 4px;
+    min-height: 300px;
+    position: relative;
+  }
+
+  .chart-placeholder {
+    text-align: center;
+    color: #666;
+    padding: 20px;
+  }
+
+  .chart-placeholder h4 {
+    margin-top: 0;
+  }
+
+  .chart-placeholder p {
+    margin: 5px 0;
+  }
+
+  /* Canvas 样式 */
+  .chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  /* 权限面板样式 */
+  .permissions-grid {
+    margin-bottom: 30px;
+  }
+
+  .permissions-panel {
+    display: flex;
+    flex-direction: row;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .roles-list {
+    flex: 1;
+  }
+
+  .permissions-details {
+    flex: 2;
+  }
+
+  .roles-list h3, .permissions-details h3 {
+    margin-top: 0;
+  }
+
+  .roles-list ul, .role-permissions ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  .roles-list li, .role-permissions li {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .role-permissions {
+    margin-bottom: 20px;
+  }
+
+  .role-permissions h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #007BFF;
+  }
+
+  /* 智能选品样式 */
+  .selection-grid {
+    margin-bottom: 30px;
+  }
+
+  .strategy-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+
+  .strategy-card {
+    flex: 1;
+    min-width: 250px;
+    padding: 20px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .strategy-header {
+    margin-bottom: 15px;
+  }
+
+  .strategy-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .strategy-description p {
+    margin: 0 0 15px 0;
+    color: #666;
+    font-size: 14px;
+  }
+
+  .strategy-details .detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .strategy-details .detail-label {
+    color: #666;
+  }
+
+  .strategy-details .detail-value {
+    color: #333;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .selected-products h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .products-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .product-card {
+    flex: 1;
+    min-width: 300px;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+  }
+
+  .product-card h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #333;
+  }
+
+  .product-detail {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .product-detail .detail-label {
+    color: #666;
+  }
+
+  .product-detail .detail-value {
+    color: #333;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  /* 预警系统样式 */
+  .alerts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .alert-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .status-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .alert-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .status-text {
+    font-weight: 600;
+    margin-right: 10px;
+  }
+
+  .alert-message {
+    font-size: 14px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .alert-action {
+    padding: 6px 12px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .alert-action:hover {
+    background: #0069d9;
+  }
+
+  /* 加载和错误状态样式 */
+  .loading, .empty, .error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+  }
+
+  .error {
+    color: #dc3545;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 1200px) {
+    #dashboard {
+      padding: 15px;
+    }
+    
+    .metrics-grid {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+    
+    .charts-grid {
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+  }
+
+  @media (max-width: 992px) {
+    header {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+    
+    .user-info {
+      width: 100%;
+      justify-content: center;
+    }
+    
+    .filters {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    
+    .filter-group {
+      flex: 1;
+      min-width: 150px;
+    }
+    
+    .permissions-panel {
+      flex-direction: column;
+    }
+    
+    .charts-grid {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    #dashboard {
+      padding: 10px;
+    }
+    
+    header h1 {
+      font-size: 20px;
+    }
+    
+    .filters {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 15px;
+    }
+    
+    .filter-group {
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    
+    .filter-group select {
+      flex: 1;
+      min-width: unset;
+    }
+    
+    #refresh-btn {
+      align-self: center;
+      width: 100%;
+    }
+    
+    .metrics-grid, .charts-grid, .alerts-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .metrics-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+    
+    .permissions-panel {
+      flex-direction: column;
+      padding: 15px;
+    }
+    
+    .chart-container {
+      min-height: 150px;
+    }
+    
+    .strategy-grid,
+    .products-grid {
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 576px) {
+    #dashboard {
+      padding: 8px;
+    }
+    
+    header {
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+    }
+    
+    header h1 {
+      font-size: 18px;
+    }
+    
+    .filter-group {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .filter-group label {
+      margin-bottom: 5px;
+    }
+    
+    .metrics-grid {
+      grid-template-columns: 1fr;
+      gap: 15px;
+    }
+    
+    .metric-card {
+      padding: 15px;
+    }
+    
+    .value {
+      font-size: 20px;
+    }
+    
+    .charts-grid {
+      gap: 15px;
+    }
+    
+    .chart-card {
+      padding: 15px;
+    }
+    
+    .alerts-grid {
+      gap: 15px;
+    }
+    
+    .alert-indicator {
+      padding: 8px 12px;
+    }
+    
+    .strategy-card,
+    .product-card {
+      min-width: 100%;
+    }
+  }
+
+  /* 超小屏幕优化 */
+  @media (max-width: 400px) {
+    #dashboard {
+      padding: 5px;
+    }
+    
+    header h1 {
+      font-size: 16px;
+    }
+    
+    .filter-group select {
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+    
+    #refresh-btn, #logout-btn {
+      padding: 6px 12px;
+      font-size: 14px;
+    }
+    
+    .metric-name {
+      font-size: 14px;
+    }
+    
+    .value {
+      font-size: 18px;
+    }
+    
+    .chart-title {
+      font-size: 16px;
+    }
+    
+    .strategy-card,
+    .product-card {
+      min-width: 100%;
+    }
+  }
+</style>

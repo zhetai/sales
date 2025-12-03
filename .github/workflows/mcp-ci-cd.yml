@@ -1,0 +1,231 @@
+name: MCP CI/CD Pipeline
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      instruction:
+        description: '自然语言指令，如"运行单元测试并验证覆盖率≥80%"'
+        required: true
+        type: string
+      timeout:
+        description: '超时时间（分钟）'
+        required: false
+        type: number
+        default: 10
+
+env:
+  NODE_VERSION: '22'
+  PYTHON_VERSION: '3.9'
+
+jobs:
+  mcp-ci-cd:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [22]
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        
+      - name: 设置Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+        
+      - name: 设置Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+        
+      - name: 安装依赖
+        run: |
+          # 设置更长的超时时间
+          npm config set fetch-timeout 300000
+          npm config set fetch-retry-mintimeout 20000
+          npm config set fetch-retry-maxtimeout 120000
+          
+          # 尝试安装依赖，如果失败则使用缓存
+          npm install --force --no-audit --no-fund --timeout=300000 || {
+            echo "⚠️ npm install 超时，尝试使用现有依赖"
+            if [ -d "node_modules" ]; then
+              echo "✅ 使用现有的 node_modules"
+            else
+              echo "❌ 没有可用的依赖，安装失败"
+              exit 1
+            fi
+          }
+          
+          pip install -r requirements.txt
+          
+      - name: 创建必要目录
+        run: |
+          mkdir -p ci-cd/{logs,reports}
+          
+      - name: 运行MCP代理
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+          MCP_AUTH_TOKEN: ${{ secrets.MCP_AUTH_TOKEN }}
+        run: |
+          # 设置指令（来自workflow_dispatch或默认指令）
+          INSTRUCTION="${{ github.event.inputs.instruction || '运行单元测试并验证覆盖率≥80%' }}"
+          TIMEOUT="${{ github.event.inputs.timeout || 10 }}"
+          
+          echo "🤖 启动MCP CI/CD代理"
+          echo "📝 指令: $INSTRUCTION"
+          echo "⏱️ 超时: ${TIMEOUT}分钟"
+          
+          # 检查Python环境
+          python3 --version || {
+            echo "❌ Python3 未安装"
+            exit 1
+          }
+          
+          # 检查MCP代理文件
+          if [ ! -f "ci-cd/mcp_agent.py" ]; then
+            echo "❌ MCP代理文件不存在"
+            exit 1
+          fi
+          
+          # 安装Python依赖
+          pip install -r requirements.txt || {
+            echo "❌ Python依赖安装失败"
+            exit 1
+          }
+          
+          # 执行MCP代理
+          timeout ${TIMEOUT}m python3 ci-cd/mcp_agent.py --instruction="$INSTRUCTION" || {
+            echo "❌ MCP代理执行失败或超时"
+            exit 1
+          }
+          
+      - name: 收集报告
+        if: always()
+        run: |
+          echo "📊 收集执行报告..."
+          
+          # 查找最新的报告文件
+          REPORT_FILE=$(find ci-cd/reports -name "*.json" -type f -printf "%T@%p\n" | sort -r | head -1 | cut -d'@' -f2)
+          
+          if [ -n "$REPORT_FILE" ]; then
+            echo "📋 最新报告: $REPORT_FILE"
+            
+            # 输出报告摘要
+            python3 -c "
+import json
+with open('$REPORT_FILE', 'r') as f:
+    report = json.load(f)
+    
+print('## 📊 执行摘要')
+print(f'- 会话ID: {report[\"session_id\"]}')
+print(f'- 指令: {report[\"instruction\"]}')
+print(f'- 总任务: {report[\"summary\"][\"total\"]}')
+print(f'- 成功: {report[\"summary\"].get(\"success\", 0)}')
+print(f'- 失败: {report[\"summary\"].get(\"failure\", 0)}')
+status = \"✅ 成功\" if report[\"summary\"].get(\"failure\", 0) == 0 else \"❌ 失败\"
+print(f'- 状态: {status}')
+            "
+
+          else
+            echo "⚠️ 未找到报告文件"
+          fi
+          
+      - name: 上传报告产物
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-reports
+          path: ci-cd/reports/
+          retention-days: 30
+          
+      - name: 通知结果
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_PAT }}
+        run: |
+          # 获取最新报告
+          REPORT_FILE=$(find ci-cd/reports -name "*.json" -type f -printf "%T@%p\n" | sort -r | head -1 | cut -d'@' -f2)
+          
+          if [ -n "$REPORT_FILE" ]; then
+            # 提取报告信息
+            STATUS=$(python3 -c "
+import json
+with open('$REPORT_FILE', 'r') as f:
+    report = json.load(f)
+status = 'failure' if report['summary'].get('failure', 0) > 0 else 'success'
+print(status)
+            ")
+            
+            # 在PR中创建评论（如果是PR触发）
+            if [ "$GITHUB_EVENT" = "pull_request" ]; then
+              COMMENT_BODY="## 🤖 MCP CI/CD 代理执行报告
+
+**指令**: ${{ github.event.inputs.instruction || '运行单元测试并验证覆盖率≥80%' }}
+**状态**: $([ "$STATUS" = "success" ] && echo "✅ 成功" || echo "❌ 失败")
+
+$(python3 -c "
+import json
+with open('$REPORT_FILE', 'r') as f:
+    report = json.load(f)
+    
+print('### 📊 执行结果')
+print(f'- 总任务数: {report[\"summary\"][\"total\"]}')
+print(f'- 成功: {report[\"summary\"][\"success\"]}')
+print(f'- 失败: {report[\"summary\"][\"failure\"]}')
+    
+if report.get('recommendations'):
+    print('### 💡 建议')
+    for rec in report['recommendations']:
+        print(f'- {rec}')
+")
+              
+              gh pr comment ${{ github.event.number }} --body "$COMMENT_BODY"
+            fi
+            
+            # 创建Issue（如果有失败）
+            if [ "$STATUS" = "failure" ]; then
+              ISSUE_TITLE="🚨 MCP CI/CD代理执行失败"
+              ISSUE_BODY="## MCP CI/CD代理执行报告
+
+**会话ID**: $(python3 -c "import json; report=json.load(open('$REPORT_FILE')); print(report['session_id'])")
+**指令**: ${{ github.event.inputs.instruction }}
+**时间**: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+### 📊 执行摘要
+$(python3 -c "
+import json
+with open('$REPORT_FILE', 'r') as f:
+    report = json.load(f)
+print(f'- 总任务数: {report[\"summary\"][\"total\"]}')
+print(f'- 成功: {report[\"summary\"][\"success\"]}')
+print(f'- 失败: {report[\"summary\"][\"failure\"]}')
+")
+
+### 🔧 失败详情
+$(python3 -c "
+import json
+with open('$REPORT_FILE', 'r') as f:
+    report = json.load(f)
+for result in report['results']:
+    if result['status'] == 'failure':
+        print(f'- {result[\"action\"]}: {result.get(\"error\", \"未知错误\")}')
+")
+              
+              gh issue create --title "$ISSUE_TITLE" --body "$ISSUE_BODY" --label "ci/cd" --label "mcp-agent"
+            fi
+          fi
+        else
+          echo "✅ 所有任务执行成功"
+        fi
+        
+  # 超时控制
+  timeout-minutes: 15
+  time-out-minutes: 15

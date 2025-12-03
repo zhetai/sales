@@ -1,0 +1,9 @@
+{
+  "name": "sales-proxy-staging",
+  "main": "./worker.js",
+  "compatibility_date": "2025-10-08",
+  "compatibility_flags": [],
+  "vars": {
+    "ENVIRONMENT": "staging"
+  }
+}

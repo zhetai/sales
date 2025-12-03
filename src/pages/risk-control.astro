@@ -1,0 +1,296 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AlertIndicator from '../components/AlertIndicator.astro';
+---
+
+<Layout title="药品代销风控与售后管理">
+  <div class="container-fluid">
+    <h1 class="h2 mb-4">药品代销风控与售后管理</h1>
+    
+    <!-- 警报指示器 -->
+    <AlertIndicator status="normal" message="系统运行正常" action="查看详情" />
+    
+    <!-- 风控与售后模块 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">风控与售后综合管理</h5>
+          </div>
+          <div class="card-body">
+            <p>本系统支持内容审核、合规药师转接、报备微信通知、退换货自动审核四大核心风控场景的全流程自动化。</p>
+            
+            <!-- 腾讯云内容审核模块 -->
+            <div class="mb-4">
+              <h6>1. 腾讯云医药内容审核</h6>
+              <form id="contentAuditForm">
+                <div class="row">
+                  <div class="col-md-4">
+                    <label for="contentType" class="form-label">内容类型</label>
+                    <select class="form-select" id="contentType">
+                      <option value="video_script">视频脚本</option>
+                      <option value="product_copy">商品文案</option>
+                      <option value="live_comment">直播弹幕</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="productId" class="form-label">关联代销商品ID</label>
+                    <input type="text" class="form-control" id="productId" placeholder="如：Swisse护肝片-12345">
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-12">
+                    <label for="content" class="form-label">待审核内容</label>
+                    <textarea class="form-control" id="content" rows="5" placeholder="请输入待审核内容..."></textarea>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">提交审核</button>
+              </form>
+              <div id="contentAuditResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 合规药师转接模块 -->
+            <div class="mb-4">
+              <h6>2. 合规药师转接</h6>
+              <form id="pharmacistTransferForm">
+                <div class="row">
+                  <div class="col-md-4">
+                    <label for="userQuestion" class="form-label">用户咨询问题</label>
+                    <input type="text" class="form-control" id="userQuestion" placeholder="如：护肝片能治脂肪肝吗？">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="transferProductId" class="form-label">关联代销商品ID</label>
+                    <input type="text" class="form-control" id="transferProductId" placeholder="如：Swisse护肝片-12345">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="userId" class="form-label">用户ID</label>
+                    <input type="text" class="form-control" id="userId" placeholder="如：u_12345">
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-6">
+                    <label for="userContact" class="form-label">用户联系方式</label>
+                    <input type="text" class="form-control" id="userContact" placeholder="如：微信：abc123">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">转接药师</button>
+              </form>
+              <div id="pharmacistTransferResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 微信报备通知模块 -->
+            <div class="mb-4">
+              <h6>3. 药品报备微信通知</h6>
+              <form id="wechatNotificationForm">
+                <div class="row">
+                  <div class="col-md-4">
+                    <label for="productName" class="form-label">药品名称</label>
+                    <input type="text" class="form-control" id="productName" placeholder="如：Swisse护肝片">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="registrationNumber" class="form-label">药品注册证号</label>
+                    <input type="text" class="form-control" id="registrationNumber" placeholder="如：国药准字H20200001">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="reportPlatform" class="form-label">报备平台</label>
+                    <input type="text" class="form-control" id="reportPlatform" placeholder="如：国家药品监督管理局">
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-6">
+                    <label for="webhookUrl" class="form-label">微信通知Webhook URL</label>
+                    <input type="text" class="form-control" id="webhookUrl" placeholder="如：Server酱/企业微信">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="reportTime" class="form-label">报备时间</label>
+                    <input type="datetime-local" class="form-control" id="reportTime">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">发送通知</button>
+              </form>
+              <div id="wechatNotificationResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 退换货自动审核模块 -->
+            <div class="mb-4">
+              <h6>4. 退换货自动审核</h6>
+              <form id="returnReviewForm">
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="returnUserId" class="form-label">用户ID</label>
+                    <input type="text" class="form-control" id="returnUserId" placeholder="如：u_12345">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="orderId" class="form-label">订单ID</label>
+                    <input type="text" class="form-control" id="orderId" placeholder="如：order_67890">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="returnReason" class="form-label">退货原因</label>
+                    <select class="form-select" id="returnReason">
+                      <option value="过敏">过敏</option>
+                      <option value="无效">无效</option>
+                      <option value="不喜欢">不喜欢</option>
+                      <option value="其他">其他</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="requestTime" class="form-label">申请时间</label>
+                    <input type="datetime-local" class="form-control" id="requestTime">
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-3">
+                    <label for="productType" class="form-label">商品类型</label>
+                    <select class="form-select" id="productType">
+                      <option value="OTC药品">OTC药品</option>
+                      <option value="保健品">保健品</option>
+                      <option value="中药">中药</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="shelfLife" class="form-label">剩余保质期（天）</label>
+                    <input type="number" class="form-control" id="shelfLife" placeholder="如：365">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="orderTime" class="form-label">下单时间</label>
+                    <input type="datetime-local" class="form-control" id="orderTime">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="shippingAddress" class="form-label">收货地址</label>
+                    <input type="text" class="form-control" id="shippingAddress" placeholder="如：北京市朝阳区XX路">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">提交审核</button>
+              </form>
+              <div id="returnReviewResult" class="mt-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 腾讯云内容审核处理
+    document.getElementById('contentAuditForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const data = {
+        module_name: 'tencent_cloud_medical_content_audit',
+        content_type: document.getElementById('contentType').value,
+        content: document.getElementById('content').value,
+        product_id: document.getElementById('productId').value
+      };
+      
+      try {
+        const response = await fetch('/api/risk-control-and-after-sales', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('contentAuditResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('contentAuditResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 合规药师转接处理
+    document.getElementById('pharmacistTransferForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const data = {
+        module_name: 'compliant_pharmacist_transfer',
+        user_question: document.getElementById('userQuestion').value,
+        product_id: document.getElementById('transferProductId').value,
+        user_info: {
+          user_id: document.getElementById('userId').value,
+          contact: document.getElementById('userContact').value
+        }
+      };
+      
+      try {
+        const response = await fetch('/api/risk-control-and-after-sales', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('pharmacistTransferResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('pharmacistTransferResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 微信报备通知处理
+    document.getElementById('wechatNotificationForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const data = {
+        module_name: 'drug_registration_wechat_notification',
+        report_info: {
+          product_name: document.getElementById('productName').value,
+          registration_number: document.getElementById('registrationNumber').value,
+          report_platform: document.getElementById('reportPlatform').value,
+          report_time: document.getElementById('reportTime').value
+        },
+        webhook_url: document.getElementById('webhookUrl').value
+      };
+      
+      try {
+        const response = await fetch('/api/risk-control-and-after-sales', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('wechatNotificationResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('wechatNotificationResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 退换货自动审核处理
+    document.getElementById('returnReviewForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const data = {
+        module_name: 'return_refund_auto_review',
+        return_request: {
+          user_id: document.getElementById('returnUserId').value,
+          order_id: document.getElementById('orderId').value,
+          return_reason: document.getElementById('returnReason').value,
+          request_time: document.getElementById('requestTime').value
+        },
+        product_info: {
+          product_type: document.getElementById('productType').value,
+          shelf_life: parseInt(document.getElementById('shelfLife').value)
+        },
+        order_info: {
+          order_time: document.getElementById('orderTime').value,
+          shipping_address: document.getElementById('shippingAddress').value
+        }
+      };
+      
+      try {
+        const response = await fetch('/api/risk-control-and-after-sales', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('returnReviewResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('returnReviewResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+  </script>
+</Layout>

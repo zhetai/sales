@@ -1,0 +1,108 @@
+---
+const { indicator } = Astro.props;
+---
+
+<div class="metric-card" data-metric={indicator.metric_name}>
+  <div class="metric-header">
+    <h3 class="metric-name">{indicator.metric_name}</h3>
+    {indicator.drill_down_data && (
+      <button class="drill-down-btn" title="下钻详情" data-metric={indicator.metric_name}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+        </svg>
+      </button>
+    )}
+  </div>
+  <div class="metric-value">
+    <span class="value">{indicator.value}</span>
+    <span class="unit">{indicator.unit || ''}</span>
+  </div>
+  <div class="metric-trend" style={`color: ${getTrendColor()}`}>
+    {getTrendSymbol()}{getTrendText()}
+  </div>
+</div>
+
+<style>
+  .metric-card {
+    padding: 20px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .metric-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .drill-down-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    color: #007BFF;
+  }
+
+  .drill-down-btn:hover {
+    background: #f0f8ff;
+  }
+
+  .metric-value {
+    margin-bottom: 15px;
+  }
+
+  .value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #007BFF;
+  }
+
+  .unit {
+    margin-left: 5px;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .metric-trend {
+    font-size: 14px;
+    font-weight: 500;
+  }
+</style>
+
+<script>
+  // 解析趋势信息
+  const getTrendSymbol = () => {
+    const trendMatch = indicator.trend.match(/([↑↓→])([^（]+)/);
+    return trendMatch ? trendMatch[1] : '';
+  };
+  
+  const getTrendText = () => {
+    const trendMatch = indicator.trend.match(/([↑↓→])([^（]+)/);
+    return trendMatch ? trendMatch[2] : indicator.trend;
+  };
+  
+  // 判断趋势颜色
+  const getTrendColor = () => {
+    const symbol = getTrendSymbol();
+    if (symbol === '↑') return '#28A745'; // 绿色
+    if (symbol === '↓') return '#DC3545'; // 红色
+    return '#666666'; // 灰色
+  };
+</script>

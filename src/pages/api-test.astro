@@ -1,0 +1,175 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <div id="api-test">
+    <h1>API测试页面</h1>
+    <div class="test-section">
+      <h2>指标查询测试</h2>
+      <button id="test-indicator">测试指标查询</button>
+      <div id="indicator-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>条款配置测试</h2>
+      <button id="test-terms">测试条款配置</button>
+      <div id="terms-result" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+      <h2>所有API测试</h2>
+      <button id="test-all">运行所有测试</button>
+      <div id="all-result" class="result"></div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // 指标查询测试
+  const testIndicatorQuery = async () => {
+    try {
+      const response = await fetch('/api/operation_indicator_query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          time_range: '近7天',
+          platform: '抖音',
+          product_type: '保健品',
+          metric_types: ['播放量', '转化率', 'ROI', '退货率', '客单价', '复购率']
+        })
+      });
+      
+      const data = await response.json();
+      document.getElementById('indicator-result').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    } catch (error) {
+      document.getElementById('indicator-result').innerHTML = `<p style="color: red;">错误: ${error.message}</p>`;
+    }
+  };
+
+  // 条款配置测试
+  const testTermConfiguration = async () => {
+    try {
+      const response = await fetch('/api/cooperation_term_configuration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          brand_id: 'brand_001',
+          affiliate_id: 'affiliate_001',
+          product_ids: ['product_001', 'product_002'],
+          cooperation_type: '独家代理',
+          terms: {
+            compliance: {
+              content_audit_responsibility: '品牌方负责内容审核',
+              qualification_sharing: '双方共享相关资质'
+            },
+            payment: {
+              settlement_cycle: '月结',
+              commission_rate: '15%'
+            }
+          }
+        })
+      });
+      
+      const data = await response.json();
+      document.getElementById('terms-result').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    } catch (error) {
+      document.getElementById('terms-result').innerHTML = `<p style="color: red;">错误: ${error.message}</p>`;
+    }
+  };
+
+  // 运行所有测试
+  const runAllTests = async () => {
+    const allResult = document.getElementById('all-result');
+    allResult.innerHTML = '<p>测试进行中...</p>';
+    
+    try {
+      // 测试指标查询
+      await testIndicatorQuery();
+      
+      // 测试条款配置
+      await testTermConfiguration();
+      
+      // 测试仪表盘配置
+      const dashboardResponse = await fetch('/api/dashboard_config_generator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chart_list: [
+            { metric: '播放量', chart_type: 'line', title: '播放量趋势' },
+            { metric: '转化率', chart_type: 'bar', title: '转化率对比' }
+          ],
+          time_range: '近7天',
+          platform: '抖音'
+        })
+      });
+      
+      const dashboardData = await dashboardResponse.json();
+      allResult.innerHTML += `<h3>仪表盘配置结果:</h3><pre>${JSON.stringify(dashboardData, null, 2)}</pre>`;
+      
+      allResult.innerHTML += '<p style="color: green;">所有测试完成！</p>';
+    } catch (error) {
+      allResult.innerHTML += `<p style="color: red;">测试出错: ${error.message}</p>`;
+    }
+  };
+
+  // 页面加载完成后绑定事件
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('test-indicator').addEventListener('click', testIndicatorQuery);
+    document.getElementById('test-terms').addEventListener('click', testTermConfiguration);
+    document.getElementById('test-all').addEventListener('click', runAllTests);
+  });
+</script>
+
+<style>
+  #api-test {
+    padding: 20px;
+    font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+  }
+  
+  .test-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+  }
+  
+  .test-section h2 {
+    margin-top: 0;
+  }
+  
+  button {
+    padding: 10px 20px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  button:hover {
+    background: #0069d9;
+  }
+  
+  .result {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  
+  pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+</style>

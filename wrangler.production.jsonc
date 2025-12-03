@@ -1,0 +1,9 @@
+{
+  "name": "sales-proxy-production",
+  "main": "./worker.js",
+  "compatibility_date": "2025-10-08",
+  "compatibility_flags": [],
+  "vars": {
+    "ENVIRONMENT": "production"
+  }
+}

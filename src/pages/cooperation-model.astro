@@ -1,0 +1,346 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AlertIndicator from '../components/AlertIndicator.astro';
+---
+
+<Layout title="药品代销合作模式管理">
+  <div class="container-fluid">
+    <h1 class="h2 mb-4">药品代销合作模式管理</h1>
+    
+    <!-- 警报指示器 -->
+    <AlertIndicator status="normal" message="系统运行正常" action="查看详情" />
+    
+    <!-- 代销合作模式模块 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">代销合作模式管理</h5>
+          </div>
+          <div class="card-body">
+            <p>本系统支持合作条款配置、权益责任管理、合作流程跟踪、数据共享等核心功能。</p>
+            
+            <!-- 合作条款配置模块 -->
+            <div class="mb-4">
+              <h6>1. 合作基础条款配置</h6>
+              <form id="termConfigurationForm">
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="brandId" class="form-label">品牌方ID</label>
+                    <input type="text" class="form-control" id="brandId" placeholder="如：Pfizer-67890">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="affiliateId" class="form-label">代销方ID</label>
+                    <input type="text" class="form-control" id="affiliateId" placeholder="如：Affiliate_XYZ-123">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="cooperationType" class="form-label">合作类型</label>
+                    <select class="form-select" id="cooperationType">
+                      <option value="独家代理">独家代理</option>
+                      <option value="非独家代理">非独家代理</option>
+                      <option value="寄售模式">寄售模式</option>
+                      <option value="一件代发">一件代发</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="productIds" class="form-label">合作商品ID（逗号分隔）</label>
+                    <input type="text" class="form-control" id="productIds" placeholder="如：Swisse护肝片-12345">
+                  </div>
+                </div>
+                
+                <h6 class="mt-3">佣金规则</h6>
+                <div class="row">
+                  <div class="col-md-4">
+                    <label for="commissionRate" class="form-label">佣金费率 (%)</label>
+                    <input type="number" class="form-control" id="commissionRate" placeholder="如：20">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="calculationCycle" class="form-label">结算周期</label>
+                    <select class="form-select" id="calculationCycle">
+                      <option value="week">周结</option>
+                      <option value="month">月结</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="paymentMethod" class="form-label">支付方式</label>
+                    <select class="form-select" id="paymentMethod">
+                      <option value="alipay">支付宝</option>
+                      <option value="wechat">微信</option>
+                      <option value="bank">银行转账</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <h6 class="mt-3">库存管理</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="stockManagement" class="form-label">库存管理方</label>
+                    <select class="form-select" id="stockManagement">
+                      <option value="brand">品牌方</option>
+                      <option value="affiliate">代销方</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="stockAlertThreshold" class="form-label">库存预警阈值</label>
+                    <input type="number" class="form-control" id="stockAlertThreshold" placeholder="如：100">
+                  </div>
+                </div>
+                
+                <h6 class="mt-3">售后责任</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="returnProcess" class="form-label">退货处理</label>
+                    <input type="text" class="form-control" id="returnProcess" placeholder="如：代销方处理退货，品牌方退款">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="refundResponsibility" class="form-label">退款责任方</label>
+                    <select class="form-select" id="refundResponsibility">
+                      <option value="brand">品牌方</option>
+                      <option value="affiliate">代销方</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <h6 class="mt-3">合规要求</h6>
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="contentAuditResponsibility" class="form-label">内容审核责任</label>
+                    <input type="text" class="form-control" id="contentAuditResponsibility" placeholder="如：代销方审核，品牌方提供资质">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="qualificationSharing" class="form-label">资质共享</label>
+                    <input type="text" class="form-control" id="qualificationSharing" placeholder="如：品牌方共享药品注册证">
+                  </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary mt-3">配置合作条款</button>
+              </form>
+              <div id="termConfigurationResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 权益与责任管理模块 -->
+            <div class="mb-4">
+              <h6>2. 权益与责任动态管理</h6>
+              <form id="rightsManagementForm">
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="rightsTermId" class="form-label">合作条款ID</label>
+                    <input type="text" class="form-control" id="rightsTermId" placeholder="如：term_20240520_123">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="party" class="form-label">发起方</label>
+                    <select class="form-select" id="party">
+                      <option value="brand">品牌方</option>
+                      <option value="affiliate">代销方</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="action" class="form-label">操作类型</label>
+                    <select class="form-select" id="action">
+                      <option value="modify_term">修改条款</option>
+                      <option value="raise_dispute">发起争议</option>
+                      <option value="confirm_change">确认变更</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="details" class="form-label">操作详情</label>
+                    <input type="text" class="form-control" id="details" placeholder="如：修改佣金率至25%">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">管理权益责任</button>
+              </form>
+              <div id="rightsManagementResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 合作流程跟踪模块 -->
+            <div class="mb-4">
+              <h6>3. 合作流程全链路跟踪</h6>
+              <form id="processTrackerForm">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="processTermId" class="form-label">合作条款ID</label>
+                    <input type="text" class="form-control" id="processTermId" placeholder="如：term_20240520_123">
+                  </div>
+                  <div class="col-md-6">
+                    <label for="processAction" class="form-label">流程操作</label>
+                    <select class="form-select" id="processAction">
+                      <option value="launch">上线</option>
+                      <option value="pause">暂停</option>
+                      <option value="terminate">终止</option>
+                      <option value="settle">结算</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">跟踪合作流程</button>
+              </form>
+              <div id="processTrackerResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 数据共享模块 -->
+            <div class="mb-4">
+              <h6>4. 合作数据共享</h6>
+              <form id="dataSharingForm">
+                <div class="row">
+                  <div class="col-md-4">
+                    <label for="dataTermId" class="form-label">合作条款ID</label>
+                    <input type="text" class="form-control" id="dataTermId" placeholder="如：term_20240520_123">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="dataType" class="form-label">数据类型</label>
+                    <select class="form-select" id="dataType">
+                      <option value="sales">销售数据</option>
+                      <option value="user_feedback">用户反馈</option>
+                      <option value="inventory">库存数据</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="timeRange" class="form-label">时间范围</label>
+                    <select class="form-select" id="timeRange">
+                      <option value="近7天">近7天</option>
+                      <option value="近30天">近30天</option>
+                      <option value="自定义">自定义</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">获取共享数据</button>
+              </form>
+              <div id="dataSharingResult" class="mt-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 合作条款配置处理
+    document.getElementById('termConfigurationForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const productIds = document.getElementById('productIds').value.split(',').map(id => id.trim());
+      
+      const data = {
+        module_name: 'cooperation_term_configuration',
+        brand_id: document.getElementById('brandId').value,
+        affiliate_id: document.getElementById('affiliateId').value,
+        product_ids: productIds,
+        cooperation_type: document.getElementById('cooperationType').value,
+        terms: {
+          commission: {
+            rate: parseFloat(document.getElementById('commissionRate').value),
+            calculation_cycle: document.getElementById('calculationCycle').value,
+            payment_method: document.getElementById('paymentMethod').value
+          },
+          inventory: {
+            stock_management: document.getElementById('stockManagement').value,
+            stock_alert_threshold: parseInt(document.getElementById('stockAlertThreshold').value)
+          },
+          after_sales: {
+            return_process: document.getElementById('returnProcess').value,
+            refund_responsibility: document.getElementById('refundResponsibility').value
+          },
+          compliance: {
+            content_audit_responsibility: document.getElementById('contentAuditResponsibility').value,
+            qualification_sharing: document.getElementById('qualificationSharing').value
+          }
+        }
+      };
+      
+      try {
+        const response = await fetch('/api/cooperation-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('termConfigurationResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('termConfigurationResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 权益与责任管理处理
+    document.getElementById('rightsManagementForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const data = {
+        module_name: 'rights_and_responsibilities_manager',
+        term_id: document.getElementById('rightsTermId').value,
+        party: document.getElementById('party').value,
+        action: document.getElementById('action').value,
+        details: document.getElementById('details').value
+      };
+      
+      try {
+        const response = await fetch('/api/cooperation-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('rightsManagementResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('rightsManagementResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 合作流程跟踪处理
+    document.getElementById('processTrackerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const data = {
+        module_name: 'cooperation_process_tracker',
+        term_id: document.getElementById('processTermId').value,
+        action: document.getElementById('processAction').value
+      };
+      
+      try {
+        const response = await fetch('/api/cooperation-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('processTrackerResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('processTrackerResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 数据共享处理
+    document.getElementById('dataSharingForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const data = {
+        module_name: 'data_sharing_portal',
+        term_id: document.getElementById('dataTermId').value,
+        data_type: document.getElementById('dataType').value,
+        time_range: document.getElementById('timeRange').value
+      };
+      
+      try {
+        const response = await fetch('/api/cooperation-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('dataSharingResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('dataSharingResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+  </script>
+</Layout>

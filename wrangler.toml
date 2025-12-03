@@ -1,0 +1,31 @@
+name = "sales-proxy"
+main = "./src/workers/main.js"
+compatibility_date = "2025-10-08"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+
+[observability]
+enabled = true
+
+[vars]
+# Environment variables will be set in Cloudflare console
+# Using placeholder values here for local development
+BLOCKCHAIN_SERVICE_URL = "https://blockchain.example.com"
+ARBITRATION_SERVICE_URL = "https://arbitration.example.com"
+INFLUENCER_DB_URL = "https://influencer-db.example.com"
+BQYUN_API_KEY = "placeholder_bqyun_key"
+DEEPSEEK_API_KEY = "placeholder_deepseek_key"
+TENCENT_CLOUD_API_KEY = "placeholder_tencent_key"
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "password"
+LOG_LEVEL = "INFO"
+
+# Secrets should be set using: wrangler secret put <SECRET_NAME>
+# SIGNATURE_PLATFORM_KEY and JWT_SECRET should be set as secrets
+
+[assets]
+directory = "./dist/"
+binding = "ASSETS"
+
+[[services]]
+binding = "ECOMMERCE_PRODUCT_SELECTOR"
+service = "ecommerce-product-selector-production"

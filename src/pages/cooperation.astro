@@ -1,0 +1,1047 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <div id="cooperation-management">
+    <header>
+      <h1>合作条款管理</h1>
+      <div class="header-actions">
+        <button id="create-term-btn" class="primary-btn">创建新条款</button>
+      </div>
+    </header>
+
+    <!-- 导航标签页 -->
+    <nav class="cooperation-nav">
+      <ul>
+        <li class="active"><a href="/cooperation">合作条款管理</a></li>
+        <li><a href="/cooperation-model">合作模式管理</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <!-- 筛选和搜索 -->
+      <section class="filters">
+        <div class="filter-group">
+          <label for="status-filter">状态:</label>
+          <select id="status-filter">
+            <option value="all">全部</option>
+            <option value="draft">草稿</option>
+            <option value="pending">待确认</option>
+            <option value="active">生效中</option>
+            <option value="expired">已过期</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label for="partner-filter">合作方:</label>
+          <input type="text" id="partner-filter" placeholder="搜索合作方">
+        </div>
+        
+        <div class="filter-group">
+          <label for="date-filter">日期范围:</label>
+          <input type="date" id="start-date">
+          <span>至</span>
+          <input type="date" id="end-date">
+        </div>
+        
+        <button id="search-btn">搜索</button>
+      </section>
+
+      <!-- 条款列表 -->
+      <section class="terms-list">
+        <h2>合作条款列表</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>条款ID</th>
+                <th>品牌方</th>
+                <th>代销方</th>
+                <th>商品数量</th>
+                <th>合作类型</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="terms-table-body">
+              <!-- 数据将通过API动态加载 -->
+              <tr>
+                <td colspan="8" class="loading">加载中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- 分页 -->
+        <div class="pagination">
+          <button id="prev-page" disabled>上一页</button>
+          <span id="page-info">第 1 页，共 1 页</span>
+          <button id="next-page" disabled>下一页</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- 创建/编辑条款模态框 -->
+    <div id="term-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">创建合作条款</h2>
+          <button class="close-btn">×</button>
+        </div>
+        <div class="modal-body">
+          <form id="term-form">
+            <div class="form-section">
+              <h3>基本信息</h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="brand-id">品牌方ID *</label>
+                  <input type="text" id="brand-id" name="brand_id" required>
+                </div>
+                <div class="form-group">
+                  <label for="affiliate-id">代销方ID *</label>
+                  <input type="text" id="affiliate-id" name="affiliate_id" required>
+                </div>
+                <div class="form-group">
+                  <label for="cooperation-type">合作类型 *</label>
+                  <select id="cooperation-type" name="cooperation_type" required>
+                    <option value="">请选择</option>
+                    <option value="独家代理">独家代理</option>
+                    <option value="非独家代理">非独家代理</option>
+                    <option value="寄售模式">寄售模式</option>
+                    <option value="一件代发">一件代发</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>商品信息</h3>
+              <div class="form-group">
+                <label for="product-ids">商品ID列表 *</label>
+                <textarea id="product-ids" name="product_ids" placeholder="请输入商品ID，每行一个" required></textarea>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>合规条款</h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="content-audit">内容审核责任 *</label>
+                  <input type="text" id="content-audit" name="content_audit_responsibility" required>
+                </div>
+                <div class="form-group">
+                  <label for="qualification-sharing">资质共享 *</label>
+                  <input type="text" id="qualification-sharing" name="qualification_sharing" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <h3>支付条款</h3>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="settlement-cycle">结算周期 *</label>
+                  <select id="settlement-cycle" name="settlement_cycle" required>
+                    <option value="">请选择</option>
+                    <option value="日结">日结</option>
+                    <option value="周结">周结</option>
+                    <option value="月结">月结</option>
+                    <option value="季结">季结</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="commission-rate">佣金比例 *</label>
+                  <input type="text" id="commission-rate" name="commission_rate" required placeholder="例如：15%">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="cancel-btn">取消</button>
+              <button type="submit" class="submit-btn">保存条款</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 详情模态框 -->
+    <div id="detail-modal" class="modal">
+      <div class="modal-content detail-modal">
+        <div class="modal-header">
+          <h2>条款详情</h2>
+          <button class="close-btn">×</button>
+        </div>
+        <div class="modal-body" id="detail-content">
+          <!-- 详情内容将通过API动态加载 -->
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // 全局变量
+  let currentTerms = [];
+  let currentPage = 1;
+  let totalPages = 1;
+
+  // DOM加载完成后初始化
+  document.addEventListener('DOMContentLoaded', async () => {
+    // 初始化页面数据
+    await loadTerms();
+    
+    // 绑定事件监听器
+    bindEventListeners();
+  });
+
+  // 加载合作条款列表
+  const loadTerms = async () => {
+    const tableBody = document.getElementById('terms-table-body');
+    
+    try {
+      // 显示加载状态
+      tableBody.innerHTML = '<tr><td colspan="8" class="loading">加载中...</td></tr>';
+      
+      // 模拟API调用
+      // 在实际应用中，这里会调用真实的API
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 模拟数据
+      const terms = [
+        {
+          term_id: 'term_123456789',
+          brand_id: 'brand_001',
+          affiliate_id: 'affiliate_001',
+          product_count: 5,
+          cooperation_type: '独家代理',
+          status: 'active',
+          created_at: '2025-10-01'
+        },
+        {
+          term_id: 'term_987654321',
+          brand_id: 'brand_002',
+          affiliate_id: 'affiliate_002',
+          product_count: 3,
+          cooperation_type: '非独家代理',
+          status: 'pending',
+          created_at: '2025-10-05'
+        },
+        {
+          term_id: 'term_456789123',
+          brand_id: 'brand_003',
+          affiliate_id: 'affiliate_003',
+          product_count: 8,
+          cooperation_type: '寄售模式',
+          status: 'draft',
+          created_at: '2025-10-10'
+        }
+      ];
+      
+      currentTerms = terms;
+      renderTermsList(terms);
+    } catch (error) {
+      console.error('加载合作条款失败:', error);
+      tableBody.innerHTML = '<tr><td colspan="8" class="error">数据加载失败</td></tr>';
+    }
+  };
+
+  // 渲染条款列表
+  const renderTermsList = (terms) => {
+    const tableBody = document.getElementById('terms-table-body');
+    
+    if (!terms || terms.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+      return;
+    }
+    
+    tableBody.innerHTML = terms.map(term => {
+      // 根据状态获取显示文本和样式
+      const getStatusText = (status) => {
+        switch (status) {
+          case 'draft': return '草稿';
+          case 'pending': return '待确认';
+          case 'active': return '生效中';
+          case 'expired': return '已过期';
+          default: return status;
+        }
+      };
+      
+      const getStatusClass = (status) => {
+        switch (status) {
+          case 'draft': return 'status-draft';
+          case 'pending': return 'status-pending';
+          case 'active': return 'status-active';
+          case 'expired': return 'status-expired';
+          default: return '';
+        }
+      };
+      
+      return `
+        <tr>
+          <td>${term.term_id}</td>
+          <td>${term.brand_id}</td>
+          <td>${term.affiliate_id}</td>
+          <td>${term.product_count}</td>
+          <td>${term.cooperation_type}</td>
+          <td><span class="status-badge ${getStatusClass(term.status)}">${getStatusText(term.status)}</span></td>
+          <td>${term.created_at}</td>
+          <td>
+            <button class="action-btn view-btn" data-term-id="${term.term_id}">查看</button>
+            <button class="action-btn edit-btn" data-term-id="${term.term_id}">编辑</button>
+            <button class="action-btn delete-btn" data-term-id="${term.term_id}">删除</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    
+    // 为操作按钮添加事件监听器
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', (event) => {
+        const termId = event.target.dataset.termId;
+        viewTermDetail(termId);
+      });
+    });
+    
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', (event) => {
+        const termId = event.target.dataset.termId;
+        editTerm(termId);
+      });
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', (event) => {
+        const termId = event.target.dataset.termId;
+        deleteTerm(termId);
+      });
+    });
+  };
+
+  // 查看条款详情
+  const viewTermDetail = async (termId) => {
+    const modal = document.getElementById('detail-modal');
+    const content = document.getElementById('detail-content');
+    
+    try {
+      // 显示加载状态
+      content.innerHTML = '<div class="loading">加载中...</div>';
+      modal.style.display = 'block';
+      
+      // 模拟API调用
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // 模拟详情数据
+      const detail = {
+        term_id: termId,
+        brand_id: 'brand_001',
+        affiliate_id: 'affiliate_001',
+        product_ids: ['product_001', 'product_002', 'product_003'],
+        cooperation_type: '独家代理',
+        status: 'active',
+        created_at: '2025-10-01',
+        terms: {
+          compliance: {
+            content_audit_responsibility: '品牌方负责内容审核',
+            qualification_sharing: '双方共享相关资质'
+          },
+          payment: {
+            settlement_cycle: '月结',
+            commission_rate: '15%'
+          }
+        }
+      };
+      
+      // 渲染详情内容
+      content.innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>条款ID:</label>
+            <span>${detail.term_id}</span>
+          </div>
+          <div class="detail-item">
+            <label>品牌方:</label>
+            <span>${detail.brand_id}</span>
+          </div>
+          <div class="detail-item">
+            <label>代销方:</label>
+            <span>${detail.affiliate_id}</span>
+          </div>
+          <div class="detail-item">
+            <label>合作类型:</label>
+            <span>${detail.cooperation_type}</span>
+          </div>
+          <div class="detail-item">
+            <label>状态:</label>
+            <span class="status-badge status-active">生效中</span>
+          </div>
+          <div class="detail-item">
+            <label>创建时间:</label>
+            <span>${detail.created_at}</span>
+          </div>
+          <div class="detail-item full-width">
+            <label>商品列表:</label>
+            <span>${detail.product_ids.join(', ')}</span>
+          </div>
+          <div class="detail-item full-width">
+            <label>合规条款:</label>
+            <span>内容审核责任: ${detail.terms.compliance.content_audit_responsibility}<br>
+                  资质共享: ${detail.terms.compliance.qualification_sharing}</span>
+          </div>
+          <div class="detail-item full-width">
+            <label>支付条款:</label>
+            <span>结算周期: ${detail.terms.payment.settlement_cycle}<br>
+                  佣金比例: ${detail.terms.payment.commission_rate}</span>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      console.error('加载条款详情失败:', error);
+      content.innerHTML = '<div class="error">详情加载失败</div>';
+    }
+  };
+
+  // 编辑条款
+  const editTerm = (termId) => {
+    // 这里应该加载条款数据并填充到表单中
+    // 为简化，我们直接打开创建表单
+    openCreateTermModal();
+  };
+
+  // 删除条款
+  const deleteTerm = async (termId) => {
+    if (confirm('确定要删除此合作条款吗？此操作不可恢复。')) {
+      try {
+        // 模拟API调用
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // 从列表中移除
+        currentTerms = currentTerms.filter(term => term.term_id !== termId);
+        renderTermsList(currentTerms);
+        
+        showNotification('条款删除成功', 'success');
+      } catch (error) {
+        console.error('删除条款失败:', error);
+        showNotification('删除失败，请稍后重试', 'error');
+      }
+    }
+  };
+
+  // 打开创建条款模态框
+  const openCreateTermModal = () => {
+    document.getElementById('modal-title').textContent = '创建合作条款';
+    document.getElementById('term-form').reset();
+    document.getElementById('term-modal').style.display = 'block';
+  };
+
+  // 绑定事件监听器
+  const bindEventListeners = () => {
+    // 创建条款按钮
+    document.getElementById('create-term-btn').addEventListener('click', openCreateTermModal);
+    
+    // 搜索按钮
+    document.getElementById('search-btn').addEventListener('click', loadTerms);
+    
+    // 表单提交
+    document.getElementById('term-form').addEventListener('submit', handleTermSubmit);
+    
+    // 模态框关闭按钮
+    document.querySelectorAll('.close-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.modal').forEach(modal => {
+          modal.style.display = 'none';
+        });
+      });
+    });
+    
+    // 取消按钮
+    document.querySelector('.cancel-btn').addEventListener('click', () => {
+      document.getElementById('term-modal').style.display = 'none';
+    });
+    
+    // 点击模态框外部关闭
+    window.addEventListener('click', (event) => {
+      document.querySelectorAll('.modal').forEach(modal => {
+        if (event.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    });
+  };
+
+  // 处理条款表单提交
+  const handleTermSubmit = async (event) => {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    // 处理商品ID列表
+    if (data.product_ids) {
+      data.product_ids = data.product_ids.split('\n').filter(id => id.trim() !== '');
+    }
+    
+    // 构建条款对象
+    const termData = {
+      brand_id: data.brand_id,
+      affiliate_id: data.affiliate_id,
+      product_ids: data.product_ids,
+      cooperation_type: data.cooperation_type,
+      terms: {
+        compliance: {
+          content_audit_responsibility: data.content_audit_responsibility,
+          qualification_sharing: data.qualification_sharing
+        },
+        payment: {
+          settlement_cycle: data.settlement_cycle,
+          commission_rate: data.commission_rate
+        }
+      }
+    };
+    
+    try {
+      // 显示提交状态
+      const submitBtn = document.querySelector('.submit-btn');
+      const originalText = submitBtn.textContent;
+      submitBtn.textContent = '提交中...';
+      submitBtn.disabled = true;
+      
+      // 调用API创建条款
+      const response = await fetch('/api/cooperation_term_configuration', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(termData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      // 关闭模态框
+      document.getElementById('term-modal').style.display = 'none';
+      
+      // 显示成功消息
+      showNotification('条款创建成功', 'success');
+      
+      // 重新加载列表
+      await loadTerms();
+      
+    } catch (error) {
+      console.error('创建条款失败:', error);
+      showNotification('创建失败，请稍后重试', 'error');
+    } finally {
+      // 恢复提交按钮
+      const submitBtn = document.querySelector('.submit-btn');
+      submitBtn.textContent = '保存条款';
+      submitBtn.disabled = false;
+    }
+  };
+
+  // 显示通知
+  const showNotification = (message, type) => {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      ${type === 'success' ? 'background: #28a745;' : 'background: #dc3545;'}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // 3秒后自动移除
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 3000);
+  };
+</script>
+
+<style>
+  #cooperation-management {
+    font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+  }
+
+  .primary-btn {
+    padding: 10px 20px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .primary-btn:hover {
+    background: #0069d9;
+  }
+
+  /* 筛选器样式 */
+  .filters {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    flex-wrap: wrap;
+    align-items: end;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .filter-group label {
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .filter-group input,
+  .filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+  }
+
+  .filter-group input {
+    min-width: 120px;
+  }
+
+  #search-btn {
+    padding: 8px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  #search-btn:hover {
+    background: #218838;
+  }
+
+  /* 表格样式 */
+  .terms-list h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+  }
+
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .action-btn {
+    padding: 6px 12px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .view-btn {
+    background: #17a2b8;
+    color: white;
+  }
+
+  .view-btn:hover {
+    background: #138496;
+  }
+
+  .edit-btn {
+    background: #007BFF;
+    color: white;
+  }
+
+  .edit-btn:hover {
+    background: #0069d9;
+  }
+
+  .delete-btn {
+    background: #dc3545;
+    color: white;
+  }
+
+  .delete-btn:hover {
+    background: #c82333;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .status-draft {
+    background: #6c757d;
+    color: white;
+  }
+
+  .status-pending {
+    background: #ffc107;
+    color: #212529;
+  }
+
+  .status-active {
+    background: #28a745;
+    color: white;
+  }
+
+  .status-expired {
+    background: #dc3545;
+    color: white;
+  }
+
+  /* 分页样式 */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .pagination button {
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .pagination button:hover:not(:disabled) {
+    background: #e9ecef;
+  }
+
+  .pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* 模态框样式 */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .detail-modal {
+    max-width: 600px;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    color: #333;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+  }
+
+  .close-btn:hover {
+    color: #333;
+  }
+
+  .modal-body {
+    padding: 20px;
+  }
+
+  /* 表单样式 */
+  .form-section {
+    margin-bottom: 30px;
+  }
+
+  .form-section h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 10px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-group label {
+    font-weight: 500;
+    color: #333;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+
+  .form-group textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .cancel-btn {
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .cancel-btn:hover {
+    background: #5a6268;
+  }
+
+  .submit-btn {
+    padding: 10px 20px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  .submit-btn:hover {
+    background: #0069d9;
+  }
+
+  /* 详情样式 */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .detail-item.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .detail-item label {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .detail-item span {
+    color: #666;
+  }
+
+  /* 加载和错误状态样式 */
+  .loading, .empty, .error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+  }
+
+  .error {
+    color: #dc3545;
+  }
+
+  /* 导航标签页样式 */
+  .cooperation-nav {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .cooperation-nav ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .cooperation-nav li {
+    margin-right: 20px;
+  }
+
+  .cooperation-nav a {
+    display: block;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #6c757d;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+  }
+
+  .cooperation-nav a:hover {
+    color: #007bff;
+  }
+
+  .cooperation-nav .active a {
+    color: #007bff;
+    border-bottom-color: #007bff;
+  }
+
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 4px;
+    color: white;
+    font-weight: 500;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .notification.success {
+    background: #28a745;
+  }
+
+  .notification.error {
+    background: #dc3545;
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    #cooperation-management {
+      padding: 10px;
+    }
+    
+    header {
+      flex-direction: column;
+      gap: 15px;
+      text-align: center;
+    }
+    
+    .filters {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .filter-group {
+      justify-content: space-between;
+    }
+    
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+      width: 95%;
+      margin: 10% auto;
+    }
+  }
+</style>

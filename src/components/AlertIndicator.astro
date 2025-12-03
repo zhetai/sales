@@ -1,0 +1,89 @@
+---
+const { status, message, action } = Astro.props;
+
+function getStatusText(status) {
+  switch (status) {
+    case 'error': return '异常';
+    case 'warning': return '预警';
+    default: return '正常';
+  }
+}
+---
+
+<div class="alert-indicator" data-status={status}>
+  <div class="status-light" class:list={[`status-${status}`]}></div>
+  <div class="alert-content">
+    <span class="status-text">{getStatusText(status)}</span>
+    <span class="alert-message">{message}</span>
+  </div>
+  <button class="alert-action" data-status={status}>{action}</button>
+</div>
+
+<style>
+  .alert-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 15px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .status-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .status-error {
+    background-color: #DC3545;
+  }
+
+  .status-warning {
+    background-color: #FFC107;
+  }
+
+  .status-normal {
+    background-color: #28A745;
+  }
+
+  .alert-content {
+    flex: 1;
+  }
+
+  .status-text {
+    font-weight: 600;
+    margin-right: 10px;
+  }
+
+  .alert-message {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .alert-action {
+    padding: 6px 12px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .alert-action:hover {
+    background: #0069d9;
+  }
+</style>
+
+<script>
+  function getStatusText(status) {
+    switch (status) {
+      case 'error': return '异常';
+      case 'warning': return '预警';
+      default: return '正常';
+    }
+  }
+</script>

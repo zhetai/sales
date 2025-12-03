@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图表测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        canvas {
+            width: 100% !important;
+            height: 300px !important;
+        }
+        h1, h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图表测试页面</h1>
+        
+        <div class="chart-container">
+            <h2>折线图测试</h2>
+            <canvas id="lineChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2>柱状图测试</h2>
+            <canvas id="barChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h2>饼图测试</h2>
+            <canvas id="pieChart"></canvas>
+        </div>
+    </div>
+
+    <script type="module">
+        // 动态导入Chart.js
+        import('https://cdn.jsdelivr.net/npm/chart.js').then(({ Chart, registerables }) => {
+            Chart.register(...registerables);
+            
+            // 折线图
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['5/14', '5/15', '5/16', '5/17', '5/18', '5/19', '5/20'],
+                    datasets: [{
+                        label: '播放量',
+                        data: [100000, 110000, 120000, 115000, 125000, 130000, 140000],
+                        borderColor: '#007BFF',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '播放量趋势'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 柱状图
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['5/14', '5/15', '5/16', '5/17', '5/18', '5/19', '5/20'],
+                    datasets: [{
+                        label: '转化率',
+                        data: [3.2, 3.5, 3.8, 3.7, 3.9, 4.1, 4.2],
+                        backgroundColor: '#28A745',
+                        borderColor: '#218838',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '转化率对比'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 饼图
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['抖音', '视频号', '其他'],
+                    datasets: [{
+                        data: [60, 30, 10],
+                        backgroundColor: [
+                            '#007BFF',
+                            '#28A745',
+                            '#FFC107'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '平台流量分布'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            console.log('Chart.js 加载并初始化成功');
+        }).catch(error => {
+            console.error('Chart.js 加载失败:', error);
+            document.body.innerHTML += '<div style="color: red; text-align: center; padding: 20px;">图表库加载失败，请检查网络连接</div>';
+        });
+    </script>
+</body>
+</html>

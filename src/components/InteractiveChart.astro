@@ -1,0 +1,96 @@
+---
+const { chart } = Astro.props;
+---
+
+<div class="chart-card" data-chart-id={chart.id}>
+  <div class="chart-header">
+    <h3 class="chart-title">{chart.options.title}</h3>
+  </div>
+  <div class="chart-container">
+    {chart.type === 'line' && <LineChart data={chart.data} options={chart.options} />}
+    {chart.type === 'bar' && <BarChart data={chart.data} options={chart.options} />}
+    {chart.type === 'pie' && <PieChart data={chart.data} options={chart.options} />}
+  </div>
+</div>
+
+<!-- 简化的图表组件实现 -->
+<script>
+  // 折线图组件
+  const LineChart = ({ data, options }) => {
+    // 这里应该使用真实的图表库如ECharts
+    return `
+      <div class="chart-placeholder">
+        <h4>${options.title}</h4>
+        <p>类型: 折线图</p>
+        <p>X轴: ${data.xAxis.join(', ')}</p>
+        <p>数据: ${data.series[0].data.join(', ')}</p>
+      </div>
+    `;
+  };
+
+  // 柱状图组件
+  const BarChart = ({ data, options }) => {
+    // 这里应该使用真实的图表库如ECharts
+    return `
+      <div class="chart-placeholder">
+        <h4>${options.title}</h4>
+        <p>类型: 柱状图</p>
+        <p>X轴: ${data.xAxis.join(', ')}</p>
+        <p>数据: ${data.series[0].data.join(', ')}</p>
+      </div>
+    `;
+  };
+
+  // 饼图组件
+  const PieChart = ({ data, options }) => {
+    // 这里应该使用真实的图表库如ECharts
+    return `
+      <div class="chart-placeholder">
+        <h4>${options.title}</h4>
+        <p>类型: 饼图</p>
+        <p>分类: ${data.categories.join(', ')}</p>
+        <p>数据: ${data.series[0].data.join(', ')}</p>
+      </div>
+    `;
+  };
+</script>
+
+<style>
+  .chart-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .chart-header {
+    margin-bottom: 15px;
+  }
+
+  .chart-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .chart-container {
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 4px;
+  }
+
+  .chart-placeholder {
+    text-align: center;
+    color: #666;
+  }
+
+  .chart-placeholder h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+  }
+</style>

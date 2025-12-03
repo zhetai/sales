@@ -1,0 +1,43 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "sales-proxy",
+	"main": "./src/workers/main.js",
+	"compatibility_date": "2025-10-08",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		"BLOCKCHAIN_SERVICE_URL": "${BLOCKCHAIN_SERVICE_URL}",
+		"ARBITRATION_SERVICE_URL": "${ARBITRATION_SERVICE_URL}",
+		"BQYUN_API_KEY": "${BQYUN_API_KEY}",
+		"DEEPSEEK_API_KEY": "${DEEPSEEK_API_KEY}",
+		"TENCENT_CLOUD_API_KEY": "${TENCENT_CLOUD_API_KEY}",
+		"ADMIN_USERNAME": "${ADMIN_USERNAME}",
+		"ADMIN_PASSWORD": "${ADMIN_PASSWORD}",
+		"LOG_LEVEL": "${LOG_LEVEL}"
+	},
+	"secret_vars": [
+		"SIGNATURE_PLATFORM_KEY",
+		"JWT_SECRET"
+	],
+	"assets": { 
+		"directory": "./dist/", 
+		"binding": "ASSETS" 
+	},
+	"services": [{ "binding": "ECOMMERCE_PRODUCT_SELECTOR", "service": "ecommerce-product-selector-production" }],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "ecommerce",
+			"database_id": "39d9d74e-f14a-46fc-888d-1ac9714cf6e8"
+		}
+	]
+}

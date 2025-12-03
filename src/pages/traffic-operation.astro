@@ -1,0 +1,273 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AlertIndicator from '../components/AlertIndicator.astro';
+---
+
+<Layout title="药品代销短视频流量运营策略">
+  <div class="container-fluid">
+    <h1 class="h2 mb-4">药品代销短视频流量运营策略</h1>
+    
+    <!-- 警报指示器 -->
+    <AlertIndicator status="normal" message="系统运行正常" action="查看详情" />
+    
+    <!-- 运营策略模块 -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">流量运营综合策略</h5>
+          </div>
+          <div class="card-body">
+            <p>本系统支持千川投放、剪映智能剪辑、达人推荐、发布&微信通知四大核心场景的全流程自动化。</p>
+            
+            <!-- 千川投放模块 -->
+            <div class="mb-4">
+              <h6>1. 千川投放接口（ROI基准线管控）</h6>
+              <form id="adPlacementForm">
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="productId" class="form-label">代销商品ID</label>
+                    <input type="text" class="form-control" id="productId" placeholder="如：Swisse护肝片-12345">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="budget" class="form-label">投放预算（元）</label>
+                    <input type="number" class="form-control" id="budget" placeholder="如：10000">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="targetAudience" class="form-label">目标人群标签</label>
+                    <select class="form-select" id="targetAudience">
+                      <option value="熬夜党/酒局党">熬夜党/酒局党</option>
+                      <option value="中老年养生">中老年养生</option>
+                      <option value="母婴家庭">母婴家庭</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="platform" class="form-label">投放平台</label>
+                    <select class="form-select" id="platform">
+                      <option value="抖音">抖音</option>
+                      <option value="视频号">视频号</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">生成投放计划</button>
+              </form>
+              <div id="adPlacementResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 剪映智能剪辑模块 -->
+            <div class="mb-4">
+              <h6>2. 剪映智能剪辑WASM处理（多版本生成+完播率筛选）</h6>
+              <p>此功能用于配置视频剪辑策略。如需进行详细的视频剪辑操作，请前往<a href="/video-editor">智能剪辑页面</a>。</p>
+              <form id="smartClippingForm">
+                <div class="row">
+                  <div class="col-md-4">
+                    <label for="videoUrl" class="form-label">原始视频URL</label>
+                    <input type="text" class="form-control" id="videoUrl" placeholder="如：阿里云OSS地址">
+                  </div>
+                  <div class="col-md-4">
+                    <label for="productType" class="form-label">商品类型</label>
+                    <select class="form-select" id="productType">
+                      <option value="OTC药品">OTC药品</option>
+                      <option value="保健品">保健品</option>
+                      <option value="中药饮片">中药饮片</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="targetDuration" class="form-label">目标视频时长（秒）</label>
+                    <input type="number" class="form-control" id="targetDuration" placeholder="如：30">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">配置剪辑策略</button>
+              </form>
+              <div id="smartClippingResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 达人推荐模块 -->
+            <div class="mb-4">
+              <h6>3. 符合"带货条件"的达人推荐列表</h6>
+              <form id="influencerRecommendationForm">
+                <div class="row">
+                  <div class="col-md-4">
+                    <label for="influencerProductType" class="form-label">商品类型</label>
+                    <select class="form-select" id="influencerProductType">
+                      <option value="OTC药品">OTC药品</option>
+                      <option value="保健品">保健品</option>
+                      <option value="中药饮片">中药饮片</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="targetPlatform" class="form-label">目标平台</label>
+                    <select class="form-select" id="targetPlatform">
+                      <option value="抖音">抖音</option>
+                      <option value="视频号">视频号</option>
+                      <option value="快手">快手</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label for="budgetRange" class="form-label">预算范围</label>
+                    <select class="form-select" id="budgetRange">
+                      <option value="低（＜5000元）">低（＜5000元）</option>
+                      <option value="中（5000-2万）">中（5000-2万）</option>
+                      <option value="高（＞2万）">高（＞2万）</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">获取达人推荐</button>
+              </form>
+              <div id="influencerRecommendationResult" class="mt-3"></div>
+            </div>
+            
+            <!-- 发布&微信通知模块 -->
+            <div class="mb-4">
+              <h6>4. 平台发布时间及主子账号微信通知</h6>
+              <form id="publishScheduleWebhookForm">
+                <div class="row">
+                  <div class="col-md-3">
+                    <label for="publishPlatform" class="form-label">发布平台</label>
+                    <select class="form-select" id="publishPlatform">
+                      <option value="抖音">抖音</option>
+                      <option value="视频号">视频号</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <label for="publishTime" class="form-label">发布时间</label>
+                    <input type="datetime-local" class="form-control" id="publishTime">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="mainAccountId" class="form-label">主账号ID</label>
+                    <input type="text" class="form-control" id="mainAccountId" placeholder="如：dy_123456">
+                  </div>
+                  <div class="col-md-3">
+                    <label for="webhookUrl" class="form-label">微信通知Webhook URL</label>
+                    <input type="text" class="form-control" id="webhookUrl" placeholder="如：Server酱/企业微信">
+                  </div>
+                </div>
+                <div class="row mt-2">
+                  <div class="col-md-12">
+                    <label for="subAccountIds" class="form-label">子账号ID列表（用逗号分隔）</label>
+                    <input type="text" class="form-control" id="subAccountIds" placeholder="如：dy_789012,dy_345678">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">设置发布计划</button>
+              </form>
+              <div id="publishScheduleWebhookResult" class="mt-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 千川投放接口处理
+    document.getElementById('adPlacementForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = {
+        module_name: 'chanmama_ad_placement',
+        product_id: document.getElementById('productId').value,
+        budget: parseFloat(document.getElementById('budget').value),
+        target_audience: document.getElementById('targetAudience').value,
+        platform: document.getElementById('platform').value
+      };
+      
+      try {
+        const response = await fetch('/api/traffic-operation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('adPlacementResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('adPlacementResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 剪映智能剪辑处理
+    document.getElementById('smartClippingForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = {
+        module_name: 'jietiao_smart_clipping',
+        video_url: document.getElementById('videoUrl').value,
+        product_type: document.getElementById('productType').value,
+        target_duration: parseInt(document.getElementById('targetDuration').value)
+      };
+      
+      try {
+        const response = await fetch('/api/traffic-operation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('smartClippingResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('smartClippingResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 达人推荐处理
+    document.getElementById('influencerRecommendationForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = {
+        module_name: 'influencer_recommendation',
+        product_type: document.getElementById('influencerProductType').value,
+        target_platform: document.getElementById('targetPlatform').value,
+        budget_range: document.getElementById('budgetRange').value
+      };
+      
+      try {
+        const response = await fetch('/api/traffic-operation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('influencerRecommendationResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('influencerRecommendationResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+    
+    // 发布&微信通知处理
+    document.getElementById('publishScheduleWebhookForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const data = {
+        module_name: 'publish_schedule_webhook',
+        platform: document.getElementById('publishPlatform').value,
+        publish_time: document.getElementById('publishTime').value,
+        main_account_id: document.getElementById('mainAccountId').value,
+        sub_account_ids: document.getElementById('subAccountIds').value.split(',').map(id => id.trim()),
+        webhook_url: document.getElementById('webhookUrl').value
+      };
+      
+      try {
+        const response = await fetch('/api/traffic-operation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        document.getElementById('publishScheduleWebhookResult').innerHTML = `<div class="alert alert-info"><pre>${JSON.stringify(result, null, 2)}</pre></div>`;
+      } catch (error) {
+        document.getElementById('publishScheduleWebhookResult').innerHTML = `<div class="alert alert-danger">请求失败: ${error.message}</div>`;
+      }
+    });
+  </script>
+</Layout>

@@ -1,0 +1,32 @@
+/**
+ * For more details on how to configure Wrangler, refer to:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "sales-proxy",
+	"main": "./worker.js",
+	"compatibility_date": "2025-10-08",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		"BLOCKCHAIN_SERVICE_URL": "https://blockchain.example.com",
+		"ARBITRATION_SERVICE_URL": "https://arbitration.example.com",
+		"SIGNATURE_PLATFORM_KEY": "your_signature_platform_key"
+	},
+	"assets": { 
+		"directory": "./dist/", 
+		"binding": "ASSETS"
+	},
+	// 性能优化配置
+	"placement": { 
+		"mode": "smart" 
+	},
+	// 启用资源压缩
+	"minify": true
+}

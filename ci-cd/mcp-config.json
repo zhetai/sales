@@ -1,0 +1,40 @@
+{
+  "mcpServers": {
+    "test-runner": {
+      "command": "node",
+      "args": ["ci-cd/mcp-servers/test-runner.js"],
+      "description": "测试执行MCP服务器",
+      "capabilities": ["tools"]
+    },
+    "code-analyzer": {
+      "command": "node", 
+      "args": ["ci-cd/mcp-servers/code-analyzer.js"],
+      "description": "代码分析MCP服务器",
+      "capabilities": ["tools"]
+    },
+    "github-integration": {
+      "command": "node",
+      "args": ["ci-cd/mcp-servers/github-integration.js"],
+      "description": "GitHub集成MCP服务器",
+      "capabilities": ["tools"]
+    },
+    "report-generator": {
+      "command": "node",
+      "args": ["ci-cd/mcp-servers/report-generator.js"],
+      "description": "报告生成MCP服务器", 
+      "capabilities": ["tools", "resources"]
+    }
+  },
+  "logging": {
+    "level": "info",
+    "file": "ci-cd/logs/mcp.log"
+  },
+  "security": {
+    "enableAuth": true,
+    "authTokenEnv": "MCP_AUTH_TOKEN"
+  },
+  "timeouts": {
+    "toolExecution": 300000,
+    "serverStartup": 10000
+  }
+}

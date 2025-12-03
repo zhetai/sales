@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>药品代销管理系统</title>
+	</head>
+	<body>
+		<!-- 顶部导航栏 -->
+		<nav class="top-nav">
+			<div class="nav-container">
+				<div class="nav-brand">
+					<h1>药品代销管理系统</h1>
+				</div>
+				<div class="nav-menu">
+					<a href="/dashboard" class="nav-link">仪表盘</a>
+					<a href="/video-editor" class="nav-link" title="专门的视频处理工具">智能剪辑</a>
+					<a href="/script-generator" class="nav-link">脚本生成</a>
+					<a href="/traffic-operation" class="nav-link" title="综合运营策略配置">流量运营</a>
+					<a href="/risk-control" class="nav-link" title="风控与售后管理">风控与售后</a>
+					<a href="/data-operation" class="nav-link" title="数据化运营指标">数据化运营</a>
+					<a href="/cooperation-model" class="nav-link hidden" title="代销合作模式管理">合作模式</a>
+					<a href="/cooperation" class="nav-link">合作管理</a>
+					<a href="/reports" class="nav-link">数据报告</a>
+					<a href="/settings" class="nav-link">系统设置</a>
+				</div>
+				<div class="nav-user">
+					<span>管理员</span>
+					<a href="/login" class="logout-link">退出</a>
+				</div>
+			</div>
+		</nav>
+		
+		<!-- 主要内容区域 -->
+		<main class="main-content">
+			<slot />
+		</main>
+		
+		<!-- 页脚 -->
+		<footer class="main-footer">
+			<div class="footer-container">
+				<p>© 2025 药品代销管理系统. 保留所有权利.</p>
+			</div>
+		</footer>
+	</body>
+</html>
+
+<style>
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+		width: 100%;
+		height: 100%;
+		font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
+		background-color: #f5f7fa;
+		color: #333;
+	}
+
+	/* 顶部导航栏 */
+	.top-nav {
+		background: #2c3e50;
+		color: white;
+		padding: 0;
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		position: sticky;
+		top: 0;
+		z-index: 100;
+	}
+
+	.nav-container {
+		max-width: 1200px;
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 20px;
+		height: 60px;
+	}
+
+	.nav-brand h1 {
+		margin: 0;
+		font-size: 20px;
+		font-weight: 600;
+	}
+
+	.nav-menu {
+		display: flex;
+		gap: 30px;
+	}
+
+	.nav-link {
+		color: #ecf0f1;
+		text-decoration: none;
+		font-weight: 500;
+		transition: color 0.3s;
+		padding: 8px 0;
+	}
+
+	.nav-link:hover {
+		color: #3498db;
+	}
+
+	.nav-link.active {
+		color: #3498db;
+		border-bottom: 2px solid #3498db;
+	}
+
+	.nav-user {
+		display: flex;
+		align-items: center;
+		gap: 15px;
+	}
+
+	.logout-link {
+		color: #e74c3c;
+		text-decoration: none;
+		font-weight: 500;
+		padding: 6px 12px;
+		border: 1px solid #e74c3c;
+		border-radius: 4px;
+		transition: all 0.3s;
+	}
+
+	.logout-link:hover {
+		background: #e74c3c;
+		color: white;
+	}
+
+	/* 隐藏元素 */
+	.hidden {
+		display: none !important;
+	}
+
+	/* 主要内容区域 */
+	.main-content {
+		flex: 1;
+		padding: 20px;
+		min-height: calc(100vh - 120px);
+	}
+
+	/* 页脚 */
+	.main-footer {
+		background: #34495e;
+		color: #ecf0f1;
+		padding: 20px 0;
+		margin-top: auto;
+	}
+
+	.footer-container {
+		max-width: 1200px;
+		margin: 0 auto;
+		text-align: center;
+		padding: 0 20px;
+	}
+
+	/* 响应式设计 */
+	@media (max-width: 768px) {
+		.nav-container {
+			flex-direction: column;
+			height: auto;
+			padding: 10px 20px;
+			gap: 10px;
+		}
+		
+		.nav-menu {
+			gap: 15px;
+			flex-wrap: wrap;
+			justify-content: center;
+		}
+		
+		.nav-user {
+			margin-bottom: 10px;
+		}
+		
+		.main-content {
+			padding: 10px;
+			min-height: calc(100vh - 160px);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.nav-menu {
+			gap: 10px;
+			font-size: 14px;
+		}
+		
+		.nav-brand h1 {
+			font-size: 18px;
+		}
+	}
+	
+	/* 隐藏元素 */
+	.hidden {
+		display: none !important;
+	}
+</style>

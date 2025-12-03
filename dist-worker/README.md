@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "sales-proxy" generated at 2025-10-31T04:50:31.687Z.

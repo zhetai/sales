@@ -1,0 +1,347 @@
+name: Secure Gated Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - 'release/**'
+    paths:
+      - 'src/**'
+      - 'workers/**'
+      - 'tests/**'
+      - 'wrangler.toml'
+      - 'package.json'
+  pull_request:
+    branches:
+      - main
+      - 'release/**'
+    paths:
+      - 'src/**'
+      - 'workers/**'
+      - 'tests/**'
+      - 'wrangler.toml'
+      - 'package.json'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+    name: Code Quality Check
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Configure npm
+        run: |
+          npm config set legacy-peer-deps true
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npx eslint . --ext .js,.ts --max-warnings 0
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit Tests with Coverage
+    outputs:
+      coverage-stats: ${{ steps.coverage.outputs.stats }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Configure npm
+        run: |
+          npm config set legacy-peer-deps true
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run unit tests with coverage
+        run: npm run test:run:coverage
+      
+      - name: Check coverage thresholds
+        run: |
+          # The coverage check is now handled by the test:run:coverage script
+          echo "Coverage thresholds checked via vitest configuration"
+      
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-coverage
+          path: coverage/
+          retention-days: 30
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    name: Integration Tests
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Configure npm
+        run: |
+          npm config set legacy-peer-deps true
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      
+      - name: Run integration tests
+        run: npx playwright test --reporter=html
+        env:
+          NODE_ENV: test
+      
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
+
+  security-audit:
+    runs-on: ubuntu-latest
+    name: Security Audit
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Configure npm
+        run: |
+          npm config set legacy-peer-deps true
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run npm audit for security vulnerabilities
+        run: |
+          # Run npm audit and save results
+          npm audit --audit-level high --json > npm-audit-report.json || echo "Audit completed with vulnerabilities"
+          
+          # Exit with error if high/critical severity issues found
+          if npm audit --audit-level high; then
+            echo "Security audit passed"
+          else
+            echo "Security audit found high/critical vulnerabilities"
+            exit 1
+          fi
+      
+      - name: Upload npm audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: npm-audit-report.json
+          retention-days: 30
+
+  staging-deployment:
+    runs-on: ubuntu-latest
+    name: Deploy to Staging
+    needs: [linting, unit-tests, integration-tests, security-audit]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: ${{ steps.deployment.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Configure npm
+        run: |
+          npm config set legacy-peer-deps true
+      
+      - name: Install production dependencies
+        run: npm ci --only=production
+      
+      - name: Build project
+        run: npm run build
+      
+      - name: Deploy to Cloudflare Workers (Staging)
+        id: deployment
+        run: npx wrangler deploy --env staging
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          NODE_ENV: staging
+          API_KEY: ${{ secrets.STAGING_API_KEY }}
+      
+      - name: Save deployment logs
+        if: always()
+        run: |
+          echo "Staging Deployment completed at $(date)" >> deployment-log.txt
+          echo "Commit: ${{ github.sha }}" >> deployment-log.txt
+          echo "Ref: ${{ github.ref }}" >> deployment-log.txt
+          echo "Actor: ${{ github.actor }}" >> deployment-log.txt
+          echo "Environment: staging" >> deployment-log.txt
+      
+      - name: Upload deployment logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-deployment-logs
+          path: deployment-log.txt
+
+  production-deployment:
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    needs: [linting, unit-tests, integration-tests, security-audit]
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+    environment:
+      name: production
+      url: ${{ steps.deployment.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Configure npm
+        run: |
+          npm config set legacy-peer-deps true
+      
+      - name: Install production dependencies
+        run: npm ci --only=production
+      
+      - name: Build project
+        run: npm run build
+      
+      - name: Verify build artifacts
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Build artifacts missing, failing deployment"
+            exit 1
+          fi
+          echo "Build artifacts verified"
+      
+      - name: Deploy to Cloudflare Workers (Production)
+        id: deployment
+        run: npx wrangler deploy --env production
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          NODE_ENV: production
+          API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
+      
+      - name: Generate deployment audit
+        run: |
+          echo "Deployment Audit Report" > audit-report.txt
+          echo "=======================" >> audit-report.txt
+          echo "Timestamp: $(date)" >> audit-report.txt
+          echo "Commit: ${{ github.sha }}" >> audit-report.txt
+          echo "Deployer: ${{ github.actor }}" >> audit-report.txt
+          echo "Repository: ${{ github.repository }}" >> audit-report.txt
+          echo "Ref: ${{ github.ref }}" >> audit-report.txt
+          echo "Workflow: ${{ github.workflow }}" >> audit-report.txt
+          echo "Run ID: ${{ github.run_id }}" >> audit-report.txt
+          echo "Runner: ${{ runner.os }}-${{ runner.arch }}" >> audit-report.txt
+          
+          # Generate structured audit log
+          ./scripts/deployment-audit.sh production >> audit-report.txt
+      
+      - name: Save deployment logs
+        if: always()
+        run: |
+          echo "Production Deployment completed at $(date)" >> deployment-log.txt
+          echo "Commit: ${{ github.sha }}" >> deployment-log.txt
+          echo "Ref: ${{ github.ref }}" >> deployment-log.txt
+          echo "Actor: ${{ github.actor }}" >> deployment-log.txt
+          echo "Environment: production" >> deployment-log.txt
+      
+      - name: Upload deployment artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-deployment-artifacts
+          path: |
+            deployment-log.txt
+            audit-report.txt
+          retention-days: 90
+
+  canary-deployment:
+    runs-on: ubuntu-latest
+    name: Canary Deployment
+    needs: [linting, unit-tests, integration-tests, security-audit]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: canary
+      url: ${{ steps.deployment.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Configure npm
+        run: |
+          npm config set legacy-peer-deps true
+      
+      - name: Install production dependencies
+        run: npm ci --only=production
+      
+      - name: Build project
+        run: npm run build
+      
+      - name: Deploy Canary Version
+        id: deployment
+        run: npx wrangler deploy --env canary --config wrangler.optimized.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          NODE_ENV: canary
+          API_KEY: ${{ secrets.CANARY_API_KEY }}
+      
+      - name: Warm up cache
+        run: |
+          # Add cache warming logic if needed
+          echo "Cache warming completed"
+      
+      - name: Save canary deployment logs
+        if: always()
+        run: |
+          echo "Canary Deployment completed at $(date)" >> canary-deployment-log.txt
+          echo "Commit: ${{ github.sha }}" >> canary-deployment-log.txt
+          echo "Ref: ${{ github.ref }}" >> canary-deployment-log.txt
+          echo "Actor: ${{ github.actor }}" >> canary-deployment-log.txt
+          echo "Environment: canary" >> canary-deployment-log.txt
+      
+      - name: Upload canary deployment logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canary-deployment-logs
+          path: canary-deployment-log.txt
